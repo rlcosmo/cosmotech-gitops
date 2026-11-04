@@ -48,3 +48,17 @@ jobs:
           done
           echo 'Argo reconciliation did not complete within 15 minutes' >&2
           exit 1
+      - name: Verify external HTTPS health after Argo reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for app in orders-api orders-worker; do
+            if [[ "$app" == orders-worker ]] && ! python3 -c 'import json; assert json.load(open("gitops/bootstrap/orders-worker-application.json"))["spec"]["syncPolicy"]["automated"]["enabled"]'; then
+              continue
+            fi
+            for probe in live ready; do
+              curl --fail --silent --show-error --max-time 10 --retry 20 --retry-all-errors --retry-delay 5 \
+                "https://$app-dev.cosmotechsolutions.com.br/health/$probe"
+            done
+            echo "$app: external HTTPS health passed" >> "$GITHUB_STEP_SUMMARY"
+          done
