@@ -47,8 +47,9 @@ rules. Worker serves health only; API is the SQS entrypoint.
 
 Image-only auto-promotion validates one selected app path and an exact successful
 source SHA/digest. API policy stays scoped to API; the worker has a separate
-policy and callers use --application orders-worker. General configuration PRs
-require review and are outside the image-only promotion path. CI validates HPA,
+policy and callers use --application orders-worker. General configuration changes run manifest validation and deploy automatically
+from main without reviewer gates; the image bot remains limited to image-only
+changes. CI validates HPA,
 hosts and service/probe wiring for every application plus negative promotion
 tests for extra files, namespace changes, pod changes, unpinned images and wrong
 digests. Recovery: pause sync/promotion, revert the previous validated image and
