@@ -21,13 +21,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
-      - run: python scripts/validate_app_manifests.py
-      - run: python -m unittest discover -s tests -v
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::414053644145:role/cosmotech-gitops-github-sync
           aws-region: us-east-1
-      - name: Reconcile this immutable main revision through the existing Argo CD
+      - name: Show this management-cluster delivery in Kestra
+        run: python scripts/report_kestra.py --app gitops --stage validate --state running
+      - id: manifest_checks
+        run: python scripts/validate_app_manifests.py
+      - id: promotion_tests
+        run: python -m unittest discover -s tests -v
+      - name: Record validation and start Argo rollout
+        run: |
+          python scripts/report_kestra.py --app gitops --stage validate --state success
+          python scripts/report_kestra.py --app gitops --stage rollout --state running
+      - id: argo_sync
+        name: Reconcile this immutable main revision through the existing Argo CD
         shell: bash
         run: |
           set -euo pipefail
@@ -48,7 +57,12 @@ jobs:
           done
           echo 'Argo reconciliation did not complete within 15 minutes' >&2
           exit 1
-      - name: Verify external HTTPS health after Argo reconciliation
+      - name: Record exact-revision Argo success
+        run: |
+          python scripts/report_kestra.py --app gitops --stage rollout --state success
+          python scripts/report_kestra.py --app gitops --stage health --state running
+      - id: external_health
+        name: Verify external HTTPS health after Argo reconciliation
         shell: bash
         run: |
           set -euo pipefail
@@ -62,3 +76,33 @@ jobs:
             done
             echo "$app: external HTTPS health passed" >> "$GITHUB_STEP_SUMMARY"
           done
+      - name: Record delivery outcome and correlate the original app pipelines
+        if: always()
+        env:
+          VALIDATION: ${{ steps.promotion_tests.outcome }}
+          ARGO_STATE: ${{ steps.argo_sync.outcome }}
+          HEALTH_STATE: ${{ steps.external_health.outcome }}
+          JOB_STATE: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          if [[ "$VALIDATION" != success ]]; then
+            python scripts/report_kestra.py --app gitops --stage validate --state "$JOB_STATE"
+            exit 0
+          fi
+          if [[ "$ARGO_STATE" != success ]]; then stage=rollout; else stage=health; fi
+          python scripts/report_kestra.py --app gitops --stage "$stage" --state "$JOB_STATE"
+          python3 - <<'PYTHON' > "$RUNNER_TEMP/source-apps"
+          import json,re
+          for app in ['orders-api','orders-worker']:
+              image=json.load(open(f'gitops/apps/{app}/dev/deployment.json'))['spec']['template']['spec']['containers'][0]['image']
+              match=re.search(r':sha-([a-f0-9]{40})@sha256:',image)
+              if match:print(app,match[1])
+          PYTHON
+          while read -r app sha; do
+            if [[ "$ARGO_STATE" == success ]]; then
+              python scripts/report_kestra.py --app "$app" --source-sha "$sha" --stage rollout --state success
+              python scripts/report_kestra.py --app "$app" --source-sha "$sha" --stage health --state "$JOB_STATE"
+            else
+              python scripts/report_kestra.py --app "$app" --source-sha "$sha" --stage rollout --state "$JOB_STATE"
+            fi
+          done < "$RUNNER_TEMP/source-apps"
