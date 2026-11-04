@@ -1,0 +1,43 @@
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "Application",
+  "metadata": {
+    "name": "orders-worker-dev",
+    "namespace": "argocd",
+    "annotations": {
+      "cosmotech.io/activation": "Enable sync only after CI promotes the health-enabled worker image and RBAC/cluster scope are installed."
+    }
+  },
+  "spec": {
+    "project": "orders-dev",
+    "source": {
+      "repoURL": "ssh://git@ssh.github.com:443/rlcosmo/cosmotech-gitops.git",
+      "targetRevision": "main",
+      "path": "gitops/apps/orders-worker/dev"
+    },
+    "destination": {
+      "server": "https://4A29FB418B3281BEF628A7122A8CAEDD.gr7.us-east-1.eks.amazonaws.com",
+      "namespace": "orders-worker"
+    },
+    "syncPolicy": {
+      "automated": {
+        "enabled": false,
+        "prune": false,
+        "selfHeal": true
+      },
+      "syncOptions": [
+        "CreateNamespace=false",
+        "RespectIgnoreDifferences=true"
+      ]
+    },
+    "ignoreDifferences": [
+      {
+        "group": "apps",
+        "kind": "Deployment",
+        "jsonPointers": [
+          "/spec/replicas"
+        ]
+      }
+    ]
+  }
+}

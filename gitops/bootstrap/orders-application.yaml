@@ -17,4 +17,11 @@ spec:
       enabled: true
       prune: false
       selfHeal: true
-    syncOptions: [CreateNamespace=false]
+    syncOptions:
+    - CreateNamespace=false
+    - RespectIgnoreDifferences=true
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas

@@ -2,34 +2,24 @@
   "apiVersion": "v1",
   "kind": "Service",
   "metadata": {
+    "name": "orders-api",
+    "namespace": "orders-api",
     "labels": {
       "app": "orders-api"
-    },
-    "name": "orders-api",
-    "namespace": "orders-api"
+    }
   },
   "spec": {
-    "clusterIP": "172.20.134.100",
-    "clusterIPs": [
-      "172.20.134.100"
-    ],
-    "internalTrafficPolicy": "Cluster",
-    "ipFamilies": [
-      "IPv4"
-    ],
-    "ipFamilyPolicy": "SingleStack",
+    "type": "ClusterIP",
+    "selector": {
+      "app": "orders-api"
+    },
     "ports": [
       {
         "name": "http",
         "port": 8000,
-        "protocol": "TCP",
-        "targetPort": "http"
+        "targetPort": "http",
+        "protocol": "TCP"
       }
-    ],
-    "selector": {
-      "app": "orders-api"
-    },
-    "sessionAffinity": "None",
-    "type": "ClusterIP"
+    ]
   }
 }
