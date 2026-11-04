@@ -13,4 +13,8 @@ spec:
     server: https://4A29FB418B3281BEF628A7122A8CAEDD.gr7.us-east-1.eks.amazonaws.com
     namespace: orders-api
   syncPolicy:
+    automated:
+      enabled: true
+      prune: false
+      selfHeal: true
     syncOptions: [CreateNamespace=false]

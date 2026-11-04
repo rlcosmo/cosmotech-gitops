@@ -1,0 +1,9 @@
+{
+  "environment": "dev",
+  "application": "orders-api-dev",
+  "namespace": "orders-api",
+  "approval_required": false,
+  "auto_promote": true,
+  "allowed_paths": ["gitops/apps/orders-api/dev/deployment.json"],
+  "scope": "Temporary owner-authorized CI/CD pilot; image-only promotions after successful CI"
+}
