@@ -1,0 +1,11 @@
+{
+  "environment": "dev",
+  "application": "orders-worker-dev",
+  "namespace": "orders-worker",
+  "approval_required": false,
+  "auto_promote": true,
+  "allowed_paths": [
+    "gitops/apps/orders-worker/dev/deployment.json"
+  ],
+  "scope": "Owner-requested worker DEV CI/CD; immutable image-only promotion after successful CI"
+}

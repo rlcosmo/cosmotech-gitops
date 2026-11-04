@@ -2,7 +2,7 @@ name: validate-dev-image
 on:
   pull_request:
     branches: [main]
-    paths: [gitops/apps/orders-api/dev/deployment.json]
+    paths: [gitops/apps/orders-api/dev/deployment.json, gitops/apps/orders-worker/dev/deployment.json]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -40,4 +40,10 @@ jobs:
           CHECK
           mapfile -t revisions < "$RUNNER_TEMP/revisions"
           git fetch origin "${revisions[0]}" "${revisions[1]}"
-          python3 scripts/validate_dev_image.py --base "${revisions[0]}" --head "${revisions[1]}"
+          changed="$(git diff --name-only "${revisions[0]}...${revisions[1]}")"
+          case "$changed" in
+            gitops/apps/orders-api/dev/deployment.json) app=orders-api ;;
+            gitops/apps/orders-worker/dev/deployment.json) app=orders-worker ;;
+            *) echo 'Configuration changes require review; image-only validation does not apply.'; exit 0 ;;
+          esac
+          python3 scripts/validate_dev_image.py --application "$app" --base "${revisions[0]}" --head "${revisions[1]}"
