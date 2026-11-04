@@ -1,6 +1,6 @@
 # cosmotech-gitops
 
-Current DEV pilot, explicitly authorized by the owner: no human/GMUD approval is required for Orders API image-only promotion. No approval is fabricated. This supersedes the earlier mandatory-gate configuration for `orders-api-dev` only.
+Current DEV policy, explicitly authorized by the owner: API and worker deploy automatically after successful CI, with no human/GMUD approval. Approval stages will be implemented later. Technical tests, scan, immutable images and exact image-only promotion validation remain mandatory.
 
 - Policy: gitops/environments/dev/release-policy.json, restricted to the Orders API deployment in namespace orders-api.
 - GitHub App validates successful CI, exact SHA/digest and an image-only diff, then merges the PR when DEV_AUTO_PROMOTE=true in cosmotech-orders-api.
@@ -34,19 +34,16 @@ RespectIgnoreDifferences=true so Argo does not undo HPA scaling. The project
 allows HPA/Ingress and workload tree visibility in exactly the two namespaces.
 RBAC is delivered from cosmotech-kubernetes-rbac, not from app source.
 
-Worker activation is deliberately disabled: its historical image lacks an HTTP
-listener. Before enabling sync, configure the worker CI OIDC role and GitOps App
-secret, successfully publish/promote a health-enabled digest, install the scoped
-RBAC, extend the existing Argo cluster registration namespaces, and apply the
-reviewed bootstrap project/Application on management K3s. API automated sync
-remains defined as before; merge these configuration changes only after RBAC and
-bootstrap are ready. No direct kubectl image patch is part of CI.
+The main-branch deliver-dev workflow obtains its own short-lived OIDC role and
+invokes the fixed CosmoTech-Sync-Orders-GitOps SSM document on the existing Argo
+host. It reconciles versioned AppProject/Application configuration and checks
+Synced/Healthy at the exact main revision. It never patches EKS Deployment images.
+Only the fixed document and dedicated host can be reached by this CI role.
+Namespaced application delivery remains owned by Argo CD.
 
-Cloudflare DNS CNAMEs for the two hosts and the infrastructure WAF allow/rate
-rules must be deployed before testing public access. Ingress uses the existing
-observability ALB and its wildcard certificate; it declares no new ALB. Hostnames
-in Git are desired configuration, not evidence of working DNS/TLS or deployment.
-See cosmotech-infrastructure-iac/docs/orders-worker-delivery.md for ordering.
+Cloudflare DNS already resolves both hosts to the existing ALB. The infrastructure
+WAF rules permit these exact hosts with per-IP rate limits, preserving all existing
+rules. Worker serves health only; API is the SQS entrypoint.
 
 Image-only auto-promotion validates one selected app path and an exact successful
 source SHA/digest. API policy stays scoped to API; the worker has a separate

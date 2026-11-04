@@ -1,0 +1,50 @@
+name: deliver-dev
+on:
+  push:
+    branches: [main]
+    paths: [gitops/**, scripts/**, tests/**, .github/workflows/deliver-dev.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: orders-dev-gitops-delivery
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python scripts/validate_app_manifests.py
+      - run: python -m unittest discover -s tests -v
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::414053644145:role/cosmotech-gitops-github-sync
+          aws-region: us-east-1
+      - name: Reconcile this immutable main revision through the existing Argo CD
+        shell: bash
+        run: |
+          set -euo pipefail
+          command_id="$(aws ssm send-command --document-name CosmoTech-Sync-Orders-GitOps \
+            --document-version '$LATEST' --instance-ids i-0b33fdd51332e04e5 \
+            --parameters "GitRevision=$GITHUB_SHA" --query Command.CommandId --output text)"
+          echo "SSM command: $command_id" >> "$GITHUB_STEP_SUMMARY"
+          for attempt in $(seq 1 180); do
+            if aws ssm get-command-invocation --command-id "$command_id" \
+              --instance-id i-0b33fdd51332e04e5 > "$RUNNER_TEMP/argo-delivery.json" 2>/dev/null; then
+              status="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["Status"])' "$RUNNER_TEMP/argo-delivery.json")"
+              case "$status" in
+                Success) cat "$RUNNER_TEMP/argo-delivery.json"; exit 0 ;;
+                Failed|Cancelled|TimedOut|Cancelling) cat "$RUNNER_TEMP/argo-delivery.json"; exit 1 ;;
+              esac
+            fi
+            sleep 5
+          done
+          echo 'Argo reconciliation did not complete within 15 minutes' >&2
+          exit 1
