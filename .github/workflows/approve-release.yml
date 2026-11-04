@@ -55,7 +55,19 @@ jobs:
     steps:
       - run: echo 'Real Infra/SRE approval recorded for this PR revision.'
   release-approved:
-    needs: infra-sre
+    if: always()
+    needs: [verify-protections, dev, qa, po-pm, infra-sre]
     runs-on: ubuntu-latest
     steps:
-      - run: echo 'Four human gates completed. Merge and manual Argo CD synchronization still require the actual GLPI/GMUD authorization.'
+      - name: Reject failed or skipped protection and approval gates
+        env:
+          GATE_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'CHECK'
+          import json,os
+          results=json.loads(os.environ['GATE_RESULTS'])
+          expected={'verify-protections','dev','qa','po-pm','infra-sre'}
+          assert set(results)==expected, 'Missing gate result'
+          assert all(value['result']=='success' for value in results.values()), 'Release blocked: every protection and actual human gate must succeed'
+          print('Four human gates completed. Actual GLPI/GMUD authorization and an authorized merge/manual Argo sync remain required.')
+          CHECK
