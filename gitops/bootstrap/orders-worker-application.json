@@ -3,10 +3,7 @@
   "kind": "Application",
   "metadata": {
     "name": "orders-worker-dev",
-    "namespace": "argocd",
-    "annotations": {
-      "cosmotech.io/activation": "Enable sync only after CI promotes the health-enabled worker image and RBAC/cluster scope are installed."
-    }
+    "namespace": "argocd"
   },
   "spec": {
     "project": "orders-dev",
@@ -21,7 +18,7 @@
     },
     "syncPolicy": {
       "automated": {
-        "enabled": false,
+        "enabled": true,
         "prune": false,
         "selfHeal": true
       },
