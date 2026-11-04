@@ -1,0 +1,34 @@
+name: approve-gitops-release
+on:
+  pull_request:
+    branches: [main]
+permissions: {contents: read}
+jobs:
+  dev:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - run: echo 'Real DEV approval recorded for this PR revision.'
+  qa:
+    needs: dev
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+      - run: echo 'Real QA approval recorded for this PR revision.'
+  po-pm:
+    needs: qa
+    runs-on: ubuntu-latest
+    environment: po-pm
+    steps:
+      - run: echo 'Real PO/PM approval recorded for this PR revision.'
+  infra-sre:
+    needs: po-pm
+    runs-on: ubuntu-latest
+    environment: infra-sre
+    steps:
+      - run: echo 'Real Infra/SRE approval recorded for this PR revision.'
+  release-approved:
+    needs: infra-sre
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Four human gates completed. Merge and manual Argo CD synchronization still require the actual GLPI/GMUD authorization.'
