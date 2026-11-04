@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orders-api-dev
+  namespace: argocd
+spec:
+  project: orders-dev
+  source:
+    repoURL: ssh://git@ssh.github.com:443/rlcosmo/cosmotech-gitops.git
+    targetRevision: main
+    path: gitops/apps/orders-api/dev
+  destination:
+    server: https://4A29FB418B3281BEF628A7122A8CAEDD.gr7.us-east-1.eks.amazonaws.com
+    namespace: orders-api
+  syncPolicy:
+    syncOptions: [CreateNamespace=false]

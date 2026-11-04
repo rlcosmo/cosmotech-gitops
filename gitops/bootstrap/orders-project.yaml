@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: orders-dev
+  namespace: argocd
+spec:
+  description: Orders DEV only. Real GMUD approvals remain mandatory for release.
+  sourceRepos: ['ssh://git@ssh.github.com:443/rlcosmo/cosmotech-gitops.git']
+  destinations:
+    - server: https://4A29FB418B3281BEF628A7122A8CAEDD.gr7.us-east-1.eks.amazonaws.com
+      namespace: orders-api
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - {group: apps, kind: Deployment}
+    - {group: '', kind: ConfigMap}
+    - {group: '', kind: Service}
