@@ -2,7 +2,7 @@ name: validate-dev-image
 on:
   pull_request:
     branches: [main]
-    paths: [gitops/apps/orders-api/dev/deployment.json, gitops/apps/orders-worker/dev/deployment.json]
+    paths: [gitops/apps/**, gitops/releases/**]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -44,6 +44,15 @@ jobs:
           case "$changed" in
             gitops/apps/orders-api/dev/deployment.json) app=orders-api ;;
             gitops/apps/orders-worker/dev/deployment.json) app=orders-worker ;;
-            *) echo 'Configuration changes require review; image-only validation does not apply.'; exit 0 ;;
+            *)
+              for candidate in orders-api orders-worker; do
+                proof="gitops/releases/${candidate}-dev.json"
+                if git cat-file -e "${revisions[1]}:$proof" 2>/dev/null && grep -qx "$proof" <<< "$changed"; then
+                  git show "${revisions[1]}:$proof" > "$RUNNER_TEMP/deployment-bundle.json"
+                  python3 scripts/validate_dev_image.py --application "$candidate" --base "${revisions[0]}" --head "${revisions[1]}" --expected-manifests "$RUNNER_TEMP/deployment-bundle.json"
+                  exit 0
+                fi
+              done
+              echo 'This change is outside automatic application delivery.'; exit 0 ;;
           esac
           python3 scripts/validate_dev_image.py --application "$app" --base "${revisions[0]}" --head "${revisions[1]}"

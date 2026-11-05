@@ -7,5 +7,6 @@
   "allowed_paths": [
     "gitops/apps/orders-worker/dev/deployment.json"
   ],
-  "scope": "Owner-requested worker DEV CI/CD; immutable image-only promotion after successful CI"
+  "scope": "Owner-authorized automatic complete DEV application configuration delivery from tested source",
+  "configuration_source": "rlcosmo/cosmotech-orders-worker:deploy/dev"
 }

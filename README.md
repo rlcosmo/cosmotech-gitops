@@ -54,3 +54,7 @@ hosts and service/probe wiring for every application plus negative promotion
 tests for extra files, namespace changes, pod changes, unpinned images and wrong
 digests. Recovery: pause sync/promotion, revert the previous validated image and
 configuration in Git, then observe Argo and HPA. Preserve queues/tables/inventory.
+
+## Origem das aplicações
+
+A configuração oficial das aplicações fica em `deploy/dev` dos repositórios `cosmotech-orders-api` e `cosmotech-orders-worker`. Os diretórios `gitops/apps/*/dev` são espelhos gerados pela esteira a partir do SHA que passou pelos testes, incluindo imagem imutável, ConfigMap, Service, HPA e Ingress. `gitops/releases` registra a proveniência do conjunto completo; a promoção automática confere cada arquivo contra o conjunto construído no CI de origem.
