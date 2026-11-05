@@ -81,9 +81,34 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:sha-70979479abe8130ad993c1482c6bc71bd8f5137d@sha256:7fe51bf83f2b4294827e56cb63654b60b1aa346d4301a9adb2c0c8483d54ef4e",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:sha-24b62bc1e86d1abe02acc60c82cb9a5732936da7@sha256:74bdaccdf64b1484412edfadac6979148705246ef0477c90d7732a22401de69e",
             "imagePullPolicy": "IfNotPresent",
+            "livenessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health/live",
+                "port": "http"
+              },
+              "initialDelaySeconds": 10,
+              "periodSeconds": 10
+            },
             "name": "orders-worker",
+            "ports": [
+              {
+                "containerPort": 8000,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health/ready",
+                "port": "http"
+              },
+              "initialDelaySeconds": 10,
+              "periodSeconds": 10
+            },
             "resources": {
               "limits": {
                 "cpu": "500m",
@@ -111,32 +136,7 @@
                 "name": "otel-java-agent",
                 "readOnly": true
               }
-            ],
-            "ports": [
-              {
-                "containerPort": 8000,
-                "name": "http",
-                "protocol": "TCP"
-              }
-            ],
-            "livenessProbe": {
-              "httpGet": {
-                "path": "/health/live",
-                "port": "http"
-              },
-              "initialDelaySeconds": 10,
-              "periodSeconds": 10,
-              "failureThreshold": 3
-            },
-            "readinessProbe": {
-              "httpGet": {
-                "path": "/health/ready",
-                "port": "http"
-              },
-              "initialDelaySeconds": 10,
-              "periodSeconds": 10,
-              "failureThreshold": 3
-            }
+            ]
           }
         ],
         "dnsPolicy": "ClusterFirst",
