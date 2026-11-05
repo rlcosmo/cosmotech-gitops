@@ -81,7 +81,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:sha-e134f3b56b2329c7cf54f7fcb35535245bef63d4@sha256:f49d1943f97c8b64eabdb834d66e062b2f74b4f9e2d31181bd97276cf51a856c",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:sha-63f30071fcb1d3f4349f03723d43f03ac4eeb04c@sha256:49a2eee4abc24f0a87ae99e72c2841c8f044028121e942b686a9f0a1b6be7530",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,
