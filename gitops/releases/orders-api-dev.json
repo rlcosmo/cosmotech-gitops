@@ -100,7 +100,7 @@
                     }
                   }
                 ],
-                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:sha-4f88ba751412f066e24166c3cf215d36cec2312d@sha256:6739a4377010e6968df22e5df758df8dbe8a2c6494687fb16faba2a5c1afe56b",
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:sha-08c8782012f7138a5b2a34385e8cb063f9bd2668@sha256:c452d671c9a8834cecae8792b07afeccdbdf3a2316ee539a467d0bf5c6fd7c5b",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 3,
@@ -319,5 +319,5 @@
     }
   },
   "source_repository": "rlcosmo/cosmotech-orders-api",
-  "source_sha": "4f88ba751412f066e24166c3cf215d36cec2312d"
+  "source_sha": "08c8782012f7138a5b2a34385e8cb063f9bd2668"
 }
