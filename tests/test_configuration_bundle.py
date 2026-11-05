@@ -5,12 +5,18 @@ import json
 from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
-import pytest
+import unittest
+import tempfile
 spec=importlib.util.spec_from_file_location('validator',Path(__file__).parents[1]/'scripts/validate_dev_image.py')
 validator=importlib.util.module_from_spec(spec);spec.loader.exec_module(validator)
 
-@pytest.mark.parametrize('tamper',[None,'configuration','namespace','unrelated','digest'])
-def test_complete_source_bundle(tmp_path,tamper):
+class ConfigurationBundleTests(unittest.TestCase):
+ def test_complete_source_bundle(self):
+  for tamper in [None,'configuration','namespace','unrelated','digest']:
+   with self.subTest(tamper=tamper), tempfile.TemporaryDirectory() as directory:
+    self.check_bundle(Path(directory),tamper)
+
+ def check_bundle(self,tmp_path,tamper):
     app='orders-api';sha='a'*40;digest='sha256:'+'b'*64
     resources={name+'.json':{'metadata':{'namespace':app}} for name in ['deployment','configmap','service','hpa','ingress']}
     resources['deployment.json']['spec']={'template':{'spec':{'containers':[{'image':'414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:sha-'+sha+'@'+digest}]}}}
@@ -30,5 +36,5 @@ def test_complete_source_bundle(tmp_path,tamper):
     args=Namespace(application=app,base='base',head='head',expected_sha=sha,expected_digest=digest,expected_manifests=expected)
     with patch.object(validator,'git',side_effect=git):
         if tamper:
-            with pytest.raises(SystemExit):validator.validate_bundle(args)
+            with self.assertRaises(SystemExit):validator.validate_bundle(args)
         else:validator.validate_bundle(args)
