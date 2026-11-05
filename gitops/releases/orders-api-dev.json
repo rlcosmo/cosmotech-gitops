@@ -25,6 +25,7 @@
         "namespace": "orders-api"
       },
       "spec": {
+        "minReadySeconds": 10,
         "progressDeadlineSeconds": 600,
         "revisionHistoryLimit": 10,
         "selector": {
@@ -34,8 +35,8 @@
         },
         "strategy": {
           "rollingUpdate": {
-            "maxSurge": "25%",
-            "maxUnavailable": "25%"
+            "maxSurge": 1,
+            "maxUnavailable": 0
           },
           "type": "RollingUpdate"
         },
@@ -96,7 +97,7 @@
                     }
                   }
                 ],
-                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:sha-967698a574932380f5b084d8377fd37b04de31b4@sha256:2474f92954cfd230769b94994f72024c38f181d4b0fa0e0bff2f1a79b9500a3d",
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:sha-15918084f1899d25739084a42fb20545a95c4347@sha256:e251ccdd56638e739536f7126990f4bbe95350059593b6ef9ab6fdf0748cf175",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 3,
@@ -105,10 +106,10 @@
                     "port": "http",
                     "scheme": "HTTP"
                   },
-                  "initialDelaySeconds": 10,
+                  "initialDelaySeconds": 0,
                   "periodSeconds": 10,
                   "successThreshold": 1,
-                  "timeoutSeconds": 1
+                  "timeoutSeconds": 2
                 },
                 "name": "orders-api",
                 "ports": [
@@ -125,10 +126,10 @@
                     "port": "http",
                     "scheme": "HTTP"
                   },
-                  "initialDelaySeconds": 5,
+                  "initialDelaySeconds": 0,
                   "periodSeconds": 5,
                   "successThreshold": 1,
-                  "timeoutSeconds": 1
+                  "timeoutSeconds": 2
                 },
                 "resources": {
                   "limits": {
@@ -148,6 +149,18 @@
                     ]
                   },
                   "readOnlyRootFilesystem": true
+                },
+                "startupProbe": {
+                  "failureThreshold": 30,
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 2,
+                  "periodSeconds": 5,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 2
                 },
                 "terminationMessagePath": "/dev/termination-log",
                 "terminationMessagePolicy": "File",
@@ -303,5 +316,5 @@
     }
   },
   "source_repository": "rlcosmo/cosmotech-orders-api",
-  "source_sha": "967698a574932380f5b084d8377fd37b04de31b4"
+  "source_sha": "15918084f1899d25739084a42fb20545a95c4347"
 }
