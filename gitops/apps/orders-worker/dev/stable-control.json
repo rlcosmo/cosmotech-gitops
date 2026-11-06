@@ -3,7 +3,10 @@
   "kind": "ConfigMap",
   "metadata": {
     "name": "orders-worker-stable-control",
-    "namespace": "orders-worker"
+    "namespace": "orders-worker",
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000003"
+    }
   },
   "data": {
     "mode": "run"
