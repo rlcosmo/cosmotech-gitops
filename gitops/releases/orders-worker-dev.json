@@ -3,11 +3,11 @@
   "gmud_id": "RCL000005",
   "glpi_change_id": 9,
   "gmud_release_id": "cac4c3cc0f336126e35ea1ceaf7e5163c10691c04bc7d6522dc49284bc89dee2",
-  "effect_id": "3c89185a883e148d7fe2fef1c1ff28e5f108aa909a1bbb78ca18ca49c955b20f",
-  "effect": "promote:canary",
+  "effect_id": "eec5382285bda2cf852526446805933bcf6d9d95c7e312363f401fcce189edaf",
+  "effect": "rollback:canary",
   "kestra_execution_id": "12AXgkuanecQ9CAN4j3MsJ",
   "source_repository": "rlcosmo/cosmotech-orders-worker",
-  "source_sha": "2595cc948f88f7914fd3498c52af2af69d714034",
+  "source_sha": "63f872920573c2031b5ae8ed94c32771de5abf66",
   "requested_source_sha": "2595cc948f88f7914fd3498c52af2af69d714034",
   "resources": {
     "deployment.json": {
@@ -52,7 +52,7 @@
               "app": "orders-worker",
               "cosmotech.io/component": "orders-worker",
               "cosmotech.io/channel": "stable",
-              "cosmotech.io/gmud-id": "RCL000005"
+              "cosmotech.io/gmud-id": "RCL000003"
             }
           },
           "spec": {
@@ -101,7 +101,7 @@
                   },
                   {
                     "name": "RELEASE_VERSION",
-                    "value": "sha256:64d9522a3f3c707243e115c4a859aa19558ef857e4fe5339ad9e5c6077b494b4"
+                    "value": "sha256:8ef1cb469754c5d6600916dcdbb7af43f2ebe7bd6f26b6ce65392793061dbb65"
                   }
                 ],
                 "envFrom": [
@@ -111,7 +111,7 @@
                     }
                   }
                 ],
-                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker@sha256:64d9522a3f3c707243e115c4a859aa19558ef857e4fe5339ad9e5c6077b494b4",
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker@sha256:8ef1cb469754c5d6600916dcdbb7af43f2ebe7bd6f26b6ce65392793061dbb65",
                 "imagePullPolicy": "IfNotPresent",
                 "name": "orders-worker",
                 "resources": {
@@ -282,7 +282,7 @@
           "name": "orders-worker"
         },
         "minReplicas": 1,
-        "maxReplicas": 1,
+        "maxReplicas": 4,
         "metrics": [
           {
             "type": "ContainerResource",
@@ -383,20 +383,6 @@
             }
           }
         ]
-      }
-    },
-    "stable-control.json": {
-      "apiVersion": "v1",
-      "kind": "ConfigMap",
-      "metadata": {
-        "name": "orders-worker-stable-control",
-        "namespace": "orders-worker",
-        "annotations": {
-          "cosmotech.io/gmud-id": "RCL000005"
-        }
-      },
-      "data": {
-        "mode": "run"
       }
     }
   }
