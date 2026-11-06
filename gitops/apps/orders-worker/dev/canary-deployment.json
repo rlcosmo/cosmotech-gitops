@@ -8,7 +8,7 @@
     "name": "orders-worker-canary",
     "namespace": "orders-worker",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000003"
+      "cosmotech.io/gmud-id": "RCL000005"
     }
   },
   "spec": {
@@ -40,7 +40,7 @@
           "app": "orders-worker-canary",
           "cosmotech.io/component": "orders-worker",
           "cosmotech.io/channel": "canary",
-          "cosmotech.io/gmud-id": "RCL000003"
+          "cosmotech.io/gmud-id": "RCL000005"
         }
       },
       "spec": {
@@ -89,7 +89,7 @@
               },
               {
                 "name": "RELEASE_VERSION",
-                "value": "sha256:8ef1cb469754c5d6600916dcdbb7af43f2ebe7bd6f26b6ce65392793061dbb65"
+                "value": "sha256:64d9522a3f3c707243e115c4a859aa19558ef857e4fe5339ad9e5c6077b494b4"
               }
             ],
             "envFrom": [
@@ -99,7 +99,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker@sha256:8ef1cb469754c5d6600916dcdbb7af43f2ebe7bd6f26b6ce65392793061dbb65",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker@sha256:64d9522a3f3c707243e115c4a859aa19558ef857e4fe5339ad9e5c6077b494b4",
             "imagePullPolicy": "IfNotPresent",
             "name": "orders-worker",
             "resources": {
