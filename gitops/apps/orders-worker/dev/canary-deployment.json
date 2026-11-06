@@ -14,7 +14,7 @@
   "spec": {
     "minReadySeconds": 10,
     "progressDeadlineSeconds": 600,
-    "revisionHistoryLimit": 10,
+    "revisionHistoryLimit": 2,
     "selector": {
       "matchLabels": {
         "app": "orders-worker-canary"

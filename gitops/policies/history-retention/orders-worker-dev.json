@@ -1,0 +1,433 @@
+{
+  "policy": "replicaset-retention",
+  "revisionHistoryLimit": 2,
+  "effect_id": "3059e453bc6194ab0f65965fb6dff86cb57710d0ac7b539573d08f35923bab9e",
+  "parent_revision": "49e063910042f7b6b64e3a9d24cee9346613416e",
+  "gmud_context": "RCL000010",
+  "glpi_change_id": 14,
+  "release_execution_context": "H7O83ddlbuiIXWI5Izh4L",
+  "scope": "spec.revisionHistoryLimit only; no image, pod template, replica count or approval changes",
+  "resources": {
+    "deployment.json": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "orders-worker"
+        },
+        "name": "orders-worker",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      },
+      "spec": {
+        "minReadySeconds": 10,
+        "progressDeadlineSeconds": 600,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "app": "orders-worker"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "instrumentation.opentelemetry.io/lab": "enabled",
+              "sidecar.istio.io/proxyCPU": "50m",
+              "sidecar.istio.io/proxyCPULimit": "250m",
+              "sidecar.istio.io/proxyMemory": "64Mi",
+              "sidecar.istio.io/proxyMemoryLimit": "256Mi"
+            },
+            "labels": {
+              "app": "orders-worker",
+              "cosmotech.io/component": "orders-worker",
+              "cosmotech.io/channel": "stable",
+              "app.kubernetes.io/version": "1.0.5",
+              "cosmotech.io/release": "worker-1.0.5-16",
+              "cosmotech.io/gmud-id": "RCL000008"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "OTEL_SERVICE_NAME",
+                    "value": "orders-worker"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+                    "value": "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_PROTOCOL",
+                    "value": "http/protobuf"
+                  },
+                  {
+                    "name": "OTEL_TRACES_EXPORTER",
+                    "value": "otlp"
+                  },
+                  {
+                    "name": "OTEL_METRICS_EXPORTER",
+                    "value": "none"
+                  },
+                  {
+                    "name": "OTEL_LOGS_EXPORTER",
+                    "value": "none"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_INSECURE",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OTEL_RESOURCE_ATTRIBUTES",
+                    "value": "deployment.environment=dev,service.namespace=orders"
+                  },
+                  {
+                    "name": "WORKER_CONTROL_FILE",
+                    "value": "/etc/cosmotech/stable/mode"
+                  },
+                  {
+                    "name": "RELEASE_CHANNEL",
+                    "value": "stable"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:c959c16ca700790691a889b180bd29ea072e23a836d93c9ea0edeeaa0d953895"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "orders-config"
+                    }
+                  }
+                ],
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:worker-1.0.5-16",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "orders-worker",
+                "resources": {
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/otel",
+                    "name": "otel-java-agent",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "stable-control",
+                    "mountPath": "/etc/cosmotech/stable",
+                    "readOnly": true
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 8000,
+                    "name": "http",
+                    "protocol": "TCP"
+                  }
+                ],
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 10,
+                  "failureThreshold": 3,
+                  "timeoutSeconds": 2
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 5,
+                  "failureThreshold": 3,
+                  "timeoutSeconds": 2
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 25,
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 2,
+                  "failureThreshold": 30,
+                  "successThreshold": 1
+                }
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "orders-worker-sa",
+            "serviceAccountName": "orders-worker-sa",
+            "terminationGracePeriodSeconds": 240,
+            "volumes": [
+              {
+                "emptyDir": {},
+                "name": "otel-java-agent"
+              },
+              {
+                "name": "stable-control",
+                "configMap": {
+                  "name": "orders-worker-stable-control"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "canary-deployment.json": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "orders-worker-canary"
+        },
+        "name": "orders-worker-canary",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      },
+      "spec": {
+        "minReadySeconds": 10,
+        "progressDeadlineSeconds": 600,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "app": "orders-worker-canary"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "instrumentation.opentelemetry.io/lab": "enabled",
+              "sidecar.istio.io/proxyCPU": "50m",
+              "sidecar.istio.io/proxyCPULimit": "250m",
+              "sidecar.istio.io/proxyMemory": "64Mi",
+              "sidecar.istio.io/proxyMemoryLimit": "256Mi"
+            },
+            "labels": {
+              "app": "orders-worker-canary",
+              "cosmotech.io/component": "orders-worker",
+              "cosmotech.io/channel": "canary",
+              "app.kubernetes.io/version": "1.0.6",
+              "cosmotech.io/release": "worker-1.0.6-17",
+              "cosmotech.io/gmud-id": "RCL000010"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "OTEL_SERVICE_NAME",
+                    "value": "orders-worker"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+                    "value": "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_PROTOCOL",
+                    "value": "http/protobuf"
+                  },
+                  {
+                    "name": "OTEL_TRACES_EXPORTER",
+                    "value": "otlp"
+                  },
+                  {
+                    "name": "OTEL_METRICS_EXPORTER",
+                    "value": "none"
+                  },
+                  {
+                    "name": "OTEL_LOGS_EXPORTER",
+                    "value": "none"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_INSECURE",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OTEL_RESOURCE_ATTRIBUTES",
+                    "value": "deployment.environment=dev,service.namespace=orders"
+                  },
+                  {
+                    "name": "WORKER_CONTROL_FILE",
+                    "value": "/etc/cosmotech/control/lease.json"
+                  },
+                  {
+                    "name": "RELEASE_CHANNEL",
+                    "value": "canary"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:6b57d0c53a95a355f83bc0b0e888baba55a34531334f4d38aa44a0b9b55a72f9"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "orders-config"
+                    }
+                  }
+                ],
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:worker-1.0.6-17",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "orders-worker",
+                "resources": {
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/otel",
+                    "name": "otel-java-agent",
+                    "readOnly": true
+                  },
+                  {
+                    "name": "canary-control",
+                    "mountPath": "/etc/cosmotech/control",
+                    "readOnly": true
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 8000,
+                    "name": "http",
+                    "protocol": "TCP"
+                  }
+                ],
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 10,
+                  "failureThreshold": 3,
+                  "timeoutSeconds": 2
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 5,
+                  "failureThreshold": 3,
+                  "timeoutSeconds": 2
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 25,
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 2,
+                  "failureThreshold": 30,
+                  "successThreshold": 1
+                }
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "orders-worker-sa",
+            "serviceAccountName": "orders-worker-sa",
+            "terminationGracePeriodSeconds": 240,
+            "volumes": [
+              {
+                "emptyDir": {},
+                "name": "otel-java-agent"
+              },
+              {
+                "name": "canary-control",
+                "configMap": {
+                  "name": "orders-worker-canary-control"
+                }
+              }
+            ]
+          }
+        },
+        "replicas": 0
+      }
+    }
+  }
+}
