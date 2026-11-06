@@ -8,7 +8,7 @@
     "name": "orders-api",
     "namespace": "orders-api",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000004"
+      "cosmotech.io/gmud-id": "RCL000007"
     }
   },
   "spec": {
@@ -37,7 +37,9 @@
         },
         "labels": {
           "app": "orders-api",
-          "cosmotech.io/gmud-id": "RCL000004"
+          "app.kubernetes.io/version": "2.0.3-lab",
+          "cosmotech.io/release": "api-2.0.3-lab-19",
+          "cosmotech.io/gmud-id": "RCL000007"
         }
       },
       "spec": {
@@ -78,7 +80,7 @@
               },
               {
                 "name": "RELEASE_VERSION",
-                "value": "sha256:f8f78bd8f45ce07bf90cb793e6db197742faae0ce7a0dc6309b6f691bcdd76cd"
+                "value": "sha256:bb714d3f611534bd1f0d712c05d9caf38d73d4b9177de7ce976b1519eb084307"
               }
             ],
             "envFrom": [
@@ -88,7 +90,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api@sha256:f8f78bd8f45ce07bf90cb793e6db197742faae0ce7a0dc6309b6f691bcdd76cd",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:api-2.0.3-lab-19@sha256:bb714d3f611534bd1f0d712c05d9caf38d73d4b9177de7ce976b1519eb084307",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,

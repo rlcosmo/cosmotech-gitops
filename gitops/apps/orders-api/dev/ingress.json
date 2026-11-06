@@ -11,7 +11,7 @@
       "alb.ingress.kubernetes.io/listen-ports": "[{\"HTTPS\":443}]",
       "alb.ingress.kubernetes.io/healthcheck-path": "/health/ready",
       "alb.ingress.kubernetes.io/success-codes": "200",
-      "cosmotech.io/gmud-id": "RCL000004"
+      "cosmotech.io/gmud-id": "RCL000007"
     }
   },
   "spec": {
