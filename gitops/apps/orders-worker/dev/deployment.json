@@ -8,7 +8,7 @@
     "name": "orders-worker",
     "namespace": "orders-worker",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000006"
+      "cosmotech.io/gmud-id": "RCL000008"
     }
   },
   "spec": {

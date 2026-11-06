@@ -5,7 +5,7 @@
     "name": "orders-worker",
     "namespace": "orders-worker",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000006"
+      "cosmotech.io/gmud-id": "RCL000008"
     }
   },
   "spec": {
@@ -15,7 +15,7 @@
       "name": "orders-worker"
     },
     "minReplicas": 1,
-    "maxReplicas": 4,
+    "maxReplicas": 1,
     "metrics": [
       {
         "type": "ContainerResource",
