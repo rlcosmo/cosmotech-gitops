@@ -5,7 +5,7 @@
     "name": "orders-worker-canary-control",
     "namespace": "orders-worker",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000008"
+      "cosmotech.io/gmud-id": "RCL000010"
     }
   },
   "data": {

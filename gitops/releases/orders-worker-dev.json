@@ -1,14 +1,14 @@
 {
   "application": "orders-worker",
-  "gmud_id": "RCL000008",
-  "glpi_change_id": 12,
-  "gmud_release_id": "640e8b4d7cb069a194eb39b038e56b0bde86670c34404c2f31e5b716f0fb8fa2",
-  "effect_id": "6ecc67de04928e67bc3428f92f9f897692dad739b0aa9163df69b0fa4834800c",
-  "effect": "image-reference:tag-only",
-  "kestra_execution_id": "50dZBEpEZFcQPNS8qv56rI",
+  "gmud_id": "RCL000010",
+  "glpi_change_id": 14,
+  "gmud_release_id": "592ca942cdf06dbd433e1563a9da1da246b57d5f6d42dd06fb182f6e65028d61",
+  "effect_id": "466538b95253a18d17ad79c58c294b0fcdc554a3a77893012ce748e9c186f3bf",
+  "effect": "canary:prepare",
+  "kestra_execution_id": "H7O83ddlbuiIXWI5Izh4L",
   "source_repository": "rlcosmo/cosmotech-orders-worker",
-  "source_sha": "df58807414257677ddf3b46e7e7f4e9bdc0ea34a",
-  "requested_source_sha": "df58807414257677ddf3b46e7e7f4e9bdc0ea34a",
+  "source_sha": "3db4ff4db75394852ce4714d0796c6e36022e7ae",
+  "requested_source_sha": "3db4ff4db75394852ce4714d0796c6e36022e7ae",
   "resources": {
     "deployment.json": {
       "apiVersion": "apps/v1",
@@ -20,7 +20,7 @@
         "name": "orders-worker",
         "namespace": "orders-worker",
         "annotations": {
-          "cosmotech.io/gmud-id": "RCL000008"
+          "cosmotech.io/gmud-id": "RCL000010"
         }
       },
       "spec": {
@@ -220,6 +220,173 @@
         }
       }
     },
+    "configmap.json": {
+      "apiVersion": "v1",
+      "data": {
+        "AWS_DEFAULT_REGION": "us-east-1",
+        "DYNAMODB_TABLE": "aws-eks-istio-lab-dev-orders-data",
+        "SQS_QUEUE_URL": "https://sqs.us-east-1.amazonaws.com/414053644145/aws-eks-istio-lab-dev-orders-eks",
+        "SYNTHETIC_INTERVAL_SECONDS": "300",
+        "SYNTHETIC_PEER_URL": "http://orders-api.orders-api.svc.cluster.local:8000/diagnostics/ping",
+        "SYNTHETIC_EXTERNAL_URL": "https://example.com/"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "orders-config",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      }
+    },
+    "service.json": {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "orders-worker",
+        "namespace": "orders-worker",
+        "labels": {
+          "app": "orders-worker"
+        },
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      },
+      "spec": {
+        "type": "ClusterIP",
+        "selector": {
+          "app": "orders-worker"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 8000,
+            "targetPort": "http",
+            "protocol": "TCP"
+          }
+        ]
+      }
+    },
+    "hpa.json": {
+      "apiVersion": "autoscaling/v2",
+      "kind": "HorizontalPodAutoscaler",
+      "metadata": {
+        "name": "orders-worker",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      },
+      "spec": {
+        "scaleTargetRef": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "name": "orders-worker"
+        },
+        "minReplicas": 1,
+        "maxReplicas": 1,
+        "metrics": [
+          {
+            "type": "ContainerResource",
+            "containerResource": {
+              "name": "cpu",
+              "container": "orders-worker",
+              "target": {
+                "type": "Utilization",
+                "averageUtilization": 70
+              }
+            }
+          }
+        ],
+        "behavior": {
+          "scaleDown": {
+            "stabilizationWindowSeconds": 300,
+            "policies": [
+              {
+                "type": "Pods",
+                "value": 1,
+                "periodSeconds": 60
+              }
+            ]
+          },
+          "scaleUp": {
+            "stabilizationWindowSeconds": 0,
+            "policies": [
+              {
+                "type": "Pods",
+                "value": 1,
+                "periodSeconds": 60
+              }
+            ]
+          }
+        }
+      }
+    },
+    "ingress.json": {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "Ingress",
+      "metadata": {
+        "name": "orders-worker-dev",
+        "namespace": "orders-worker",
+        "annotations": {
+          "alb.ingress.kubernetes.io/group.name": "observability",
+          "alb.ingress.kubernetes.io/group.order": "21",
+          "alb.ingress.kubernetes.io/target-type": "ip",
+          "alb.ingress.kubernetes.io/listen-ports": "[{\"HTTPS\":443}]",
+          "alb.ingress.kubernetes.io/healthcheck-path": "/health/ready",
+          "alb.ingress.kubernetes.io/success-codes": "200",
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      },
+      "spec": {
+        "ingressClassName": "alb",
+        "rules": [
+          {
+            "host": "orders-worker-dev.cosmotechsolutions.com.br",
+            "http": {
+              "paths": [
+                {
+                  "path": "/health/live",
+                  "pathType": "Exact",
+                  "backend": {
+                    "service": {
+                      "name": "orders-worker",
+                      "port": {
+                        "number": 8000
+                      }
+                    }
+                  }
+                },
+                {
+                  "path": "/health/ready",
+                  "pathType": "Exact",
+                  "backend": {
+                    "service": {
+                      "name": "orders-worker",
+                      "port": {
+                        "number": 8000
+                      }
+                    }
+                  }
+                },
+                {
+                  "path": "/diagnostics/ping",
+                  "pathType": "Exact",
+                  "backend": {
+                    "service": {
+                      "name": "orders-worker",
+                      "port": {
+                        "number": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
     "canary-deployment.json": {
       "apiVersion": "apps/v1",
       "kind": "Deployment",
@@ -230,7 +397,7 @@
         "name": "orders-worker-canary",
         "namespace": "orders-worker",
         "annotations": {
-          "cosmotech.io/gmud-id": "RCL000008"
+          "cosmotech.io/gmud-id": "RCL000010"
         }
       },
       "spec": {
@@ -262,9 +429,9 @@
               "app": "orders-worker-canary",
               "cosmotech.io/component": "orders-worker",
               "cosmotech.io/channel": "canary",
-              "app.kubernetes.io/version": "1.0.5",
-              "cosmotech.io/release": "worker-1.0.5-16",
-              "cosmotech.io/gmud-id": "RCL000008"
+              "app.kubernetes.io/version": "1.0.6",
+              "cosmotech.io/release": "worker-1.0.6-17",
+              "cosmotech.io/gmud-id": "RCL000010"
             }
           },
           "spec": {
@@ -313,7 +480,7 @@
                   },
                   {
                     "name": "RELEASE_VERSION",
-                    "value": "sha256:c959c16ca700790691a889b180bd29ea072e23a836d93c9ea0edeeaa0d953895"
+                    "value": "sha256:6b57d0c53a95a355f83bc0b0e888baba55a34531334f4d38aa44a0b9b55a72f9"
                   }
                 ],
                 "envFrom": [
@@ -323,7 +490,7 @@
                     }
                   }
                 ],
-                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:worker-1.0.5-16",
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:worker-1.0.6-17",
                 "imagePullPolicy": "IfNotPresent",
                 "name": "orders-worker",
                 "resources": {
@@ -429,6 +596,20 @@
           }
         },
         "replicas": 0
+      }
+    },
+    "canary-control.json": {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "orders-worker-canary-control",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      },
+      "data": {
+        "lease.json": "{\"mode\":\"drain\",\"expires_at\":0}"
       }
     }
   }
