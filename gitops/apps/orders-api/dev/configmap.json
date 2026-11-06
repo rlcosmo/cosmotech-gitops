@@ -13,7 +13,7 @@
     "name": "orders-config",
     "namespace": "orders-api",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000009"
+      "cosmotech.io/gmud-id": "RCL000011"
     }
   }
 }

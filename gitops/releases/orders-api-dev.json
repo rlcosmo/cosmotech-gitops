@@ -1,14 +1,18 @@
 {
   "application": "orders-api",
-  "gmud_id": "RCL000009",
-  "glpi_change_id": 13,
-  "gmud_release_id": "73ecf7f8a38d6c50bd35232a2902586d1c16611cfc59b75fbb565f945b347281",
-  "effect_id": "366974cea125e5bc66e80145c82b75147ae2c2b94ce8c3b494695b4c6f220142",
+  "gmud_id": "RCL000011",
+  "glpi_change_id": 15,
+  "gmud_release_id": "2250df8415c073387260b5cb9364e86f8239051db7fb50df0914bb5e2cdca372",
+  "effect_id": "eb2450229126bc46f827f07119f38aa94a30285d4521aa84286f29a006c77201",
   "effect": "deploy:api",
-  "kestra_execution_id": "3wN30fLGZrBmhd214817by",
+  "kestra_execution_id": "3XbRhKRmp9c3BtCj1yRNGD",
+  "publication_policy": {
+    "revisionHistoryLimit": 2,
+    "scope": "release"
+  },
   "source_repository": "rlcosmo/cosmotech-orders-api",
-  "source_sha": "3ff206a5acab9aab4b682367ac6540a56c668690",
-  "requested_source_sha": "3ff206a5acab9aab4b682367ac6540a56c668690",
+  "source_sha": "8cf95ca042ee90a8c5697603029d0bb8be4eca62",
+  "requested_source_sha": "8cf95ca042ee90a8c5697603029d0bb8be4eca62",
   "resources": {
     "deployment.json": {
       "apiVersion": "apps/v1",
@@ -20,12 +24,12 @@
         "name": "orders-api",
         "namespace": "orders-api",
         "annotations": {
-          "cosmotech.io/gmud-id": "RCL000009"
+          "cosmotech.io/gmud-id": "RCL000011"
         }
       },
       "spec": {
         "progressDeadlineSeconds": 600,
-        "revisionHistoryLimit": 10,
+        "revisionHistoryLimit": 2,
         "selector": {
           "matchLabels": {
             "app": "orders-api"
@@ -49,9 +53,9 @@
             },
             "labels": {
               "app": "orders-api",
-              "app.kubernetes.io/version": "2.0.4-lab",
-              "cosmotech.io/release": "api-2.0.4-lab-20",
-              "cosmotech.io/gmud-id": "RCL000009"
+              "app.kubernetes.io/version": "2.0.5-lab",
+              "cosmotech.io/release": "api-2.0.5-lab-21",
+              "cosmotech.io/gmud-id": "RCL000011"
             }
           },
           "spec": {
@@ -92,7 +96,7 @@
                   },
                   {
                     "name": "RELEASE_VERSION",
-                    "value": "sha256:08640ca7779987da0dd575e87a83948875ee9a364ddcee5765e88420bf7f0eb1"
+                    "value": "sha256:26f90089a1589d8bff24e7ce55db2e840d9670bcd890b6dbe2adc5499ea4e64d"
                   }
                 ],
                 "envFrom": [
@@ -102,7 +106,7 @@
                     }
                   }
                 ],
-                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:api-2.0.4-lab-20",
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:api-2.0.5-lab-21",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 3,
@@ -218,7 +222,7 @@
         "name": "orders-config",
         "namespace": "orders-api",
         "annotations": {
-          "cosmotech.io/gmud-id": "RCL000009"
+          "cosmotech.io/gmud-id": "RCL000011"
         }
       }
     },
@@ -232,7 +236,7 @@
           "app": "orders-api"
         },
         "annotations": {
-          "cosmotech.io/gmud-id": "RCL000009"
+          "cosmotech.io/gmud-id": "RCL000011"
         }
       },
       "spec": {
@@ -257,7 +261,7 @@
         "name": "orders-api",
         "namespace": "orders-api",
         "annotations": {
-          "cosmotech.io/gmud-id": "RCL000009"
+          "cosmotech.io/gmud-id": "RCL000011"
         }
       },
       "spec": {
@@ -318,7 +322,7 @@
           "alb.ingress.kubernetes.io/listen-ports": "[{\"HTTPS\":443}]",
           "alb.ingress.kubernetes.io/healthcheck-path": "/health/ready",
           "alb.ingress.kubernetes.io/success-codes": "200",
-          "cosmotech.io/gmud-id": "RCL000009"
+          "cosmotech.io/gmud-id": "RCL000011"
         }
       },
       "spec": {
