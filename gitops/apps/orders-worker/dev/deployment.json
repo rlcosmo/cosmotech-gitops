@@ -40,7 +40,9 @@
           "app": "orders-worker",
           "cosmotech.io/component": "orders-worker",
           "cosmotech.io/channel": "stable",
-          "cosmotech.io/gmud-id": "RCL000006"
+          "app.kubernetes.io/version": "1.0.5",
+          "cosmotech.io/release": "worker-1.0.5-16",
+          "cosmotech.io/gmud-id": "RCL000008"
         }
       },
       "spec": {
@@ -89,7 +91,7 @@
               },
               {
                 "name": "RELEASE_VERSION",
-                "value": "sha256:e7a7ba7ffe1da99d67db4faccfbdfd117341ccf8de8f6bf9fe91f9ccaf6e29ea"
+                "value": "sha256:c959c16ca700790691a889b180bd29ea072e23a836d93c9ea0edeeaa0d953895"
               }
             ],
             "envFrom": [
@@ -99,7 +101,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker@sha256:e7a7ba7ffe1da99d67db4faccfbdfd117341ccf8de8f6bf9fe91f9ccaf6e29ea",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:worker-1.0.5-16@sha256:c959c16ca700790691a889b180bd29ea072e23a836d93c9ea0edeeaa0d953895",
             "imagePullPolicy": "IfNotPresent",
             "name": "orders-worker",
             "resources": {

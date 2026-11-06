@@ -5,7 +5,7 @@
     "name": "orders-worker-stable-control",
     "namespace": "orders-worker",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000006"
+      "cosmotech.io/gmud-id": "RCL000008"
     }
   },
   "data": {
