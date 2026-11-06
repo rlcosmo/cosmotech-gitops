@@ -101,7 +101,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:worker-1.0.5-16@sha256:c959c16ca700790691a889b180bd29ea072e23a836d93c9ea0edeeaa0d953895",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:worker-1.0.5-16",
             "imagePullPolicy": "IfNotPresent",
             "name": "orders-worker",
             "resources": {
