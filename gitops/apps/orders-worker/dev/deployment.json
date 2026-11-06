@@ -34,7 +34,9 @@
           "sidecar.istio.io/proxyMemoryLimit": "256Mi"
         },
         "labels": {
-          "app": "orders-worker"
+          "app": "orders-worker",
+          "cosmotech.io/component": "orders-worker",
+          "cosmotech.io/channel": "stable"
         }
       },
       "spec": {
@@ -72,6 +74,18 @@
               {
                 "name": "OTEL_RESOURCE_ATTRIBUTES",
                 "value": "deployment.environment=dev,service.namespace=orders"
+              },
+              {
+                "name": "WORKER_CONTROL_FILE",
+                "value": "/etc/cosmotech/stable/mode"
+              },
+              {
+                "name": "RELEASE_CHANNEL",
+                "value": "stable"
+              },
+              {
+                "name": "RELEASE_VERSION",
+                "value": "sha256:fcf706efa0936204baa5dbae678cb78accb6b31cf208a8138194710e2d3bd95d"
               }
             ],
             "envFrom": [
@@ -81,36 +95,9 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker:sha-23f809b7a23e568848d6bc27276ad3c8faed01ea@sha256:57e68cdbfa835354c9b8b13045d14bcff944a52ca17fa00098500268fcab180c",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-worker@sha256:fcf706efa0936204baa5dbae678cb78accb6b31cf208a8138194710e2d3bd95d",
             "imagePullPolicy": "IfNotPresent",
-            "livenessProbe": {
-              "failureThreshold": 3,
-              "httpGet": {
-                "path": "/health/live",
-                "port": "http"
-              },
-              "initialDelaySeconds": 0,
-              "periodSeconds": 10,
-              "timeoutSeconds": 2
-            },
             "name": "orders-worker",
-            "ports": [
-              {
-                "containerPort": 8000,
-                "name": "http",
-                "protocol": "TCP"
-              }
-            ],
-            "readinessProbe": {
-              "failureThreshold": 3,
-              "httpGet": {
-                "path": "/health/ready",
-                "port": "http"
-              },
-              "initialDelaySeconds": 0,
-              "periodSeconds": 5,
-              "timeoutSeconds": 2
-            },
             "resources": {
               "limits": {
                 "cpu": "500m",
@@ -130,18 +117,6 @@
               },
               "readOnlyRootFilesystem": true
             },
-            "startupProbe": {
-              "failureThreshold": 30,
-              "httpGet": {
-                "path": "/health/ready",
-                "port": "http",
-                "scheme": "HTTP"
-              },
-              "initialDelaySeconds": 25,
-              "periodSeconds": 5,
-              "successThreshold": 1,
-              "timeoutSeconds": 2
-            },
             "terminationMessagePath": "/dev/termination-log",
             "terminationMessagePolicy": "File",
             "volumeMounts": [
@@ -149,8 +124,52 @@
                 "mountPath": "/otel",
                 "name": "otel-java-agent",
                 "readOnly": true
+              },
+              {
+                "name": "stable-control",
+                "mountPath": "/etc/cosmotech/stable",
+                "readOnly": true
               }
-            ]
+            ],
+            "ports": [
+              {
+                "containerPort": 8000,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/health/live",
+                "port": "http"
+              },
+              "initialDelaySeconds": 0,
+              "periodSeconds": 10,
+              "failureThreshold": 3,
+              "timeoutSeconds": 2
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/health/ready",
+                "port": "http"
+              },
+              "initialDelaySeconds": 0,
+              "periodSeconds": 5,
+              "failureThreshold": 3,
+              "timeoutSeconds": 2
+            },
+            "startupProbe": {
+              "httpGet": {
+                "path": "/health/ready",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 25,
+              "periodSeconds": 5,
+              "timeoutSeconds": 2,
+              "failureThreshold": 30,
+              "successThreshold": 1
+            }
           }
         ],
         "dnsPolicy": "ClusterFirst",
@@ -166,11 +185,17 @@
         },
         "serviceAccount": "orders-worker-sa",
         "serviceAccountName": "orders-worker-sa",
-        "terminationGracePeriodSeconds": 60,
+        "terminationGracePeriodSeconds": 240,
         "volumes": [
           {
             "emptyDir": {},
             "name": "otel-java-agent"
+          },
+          {
+            "name": "stable-control",
+            "configMap": {
+              "name": "orders-worker-stable-control"
+            }
           }
         ]
       }

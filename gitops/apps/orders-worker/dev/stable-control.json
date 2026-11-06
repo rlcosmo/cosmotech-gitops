@@ -1,0 +1,11 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "orders-worker-stable-control",
+    "namespace": "orders-worker"
+  },
+  "data": {
+    "mode": "run"
+  }
+}
