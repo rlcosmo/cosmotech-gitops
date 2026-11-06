@@ -1,59 +1,49 @@
-# cosmotech-gitops
+# CosmoTech — GitOps com Argo CD
 
-Current DEV policy, explicitly authorized by the owner: API and worker deploy automatically after successful CI, with no human/GMUD approval. Approval stages will be implemented later. Technical tests, scan, immutable images and exact image-only promotion validation remain mandatory.
+Repositório de configuração e entrega declarativa das aplicações **Orders API** e **Orders Worker** no Amazon EKS. O GitHub Actions valida e publica imagens; o GitHub App propõe alterações de imagem; o Argo CD aplica as versões desejadas no cluster.
 
-- Policy: gitops/environments/dev/release-policy.json, restricted to the Orders API deployment in namespace orders-api.
-- GitHub App validates successful CI, exact SHA/digest and an image-only diff, then merges the PR when DEV_AUTO_PROMOTE=true in cosmotech-orders-api.
-- Argo Application: gitops/bootstrap/orders-application.yaml, automatic sync enabled, pruning disabled, self-heal enabled. The dedicated EC2/K3s manages the application EKS cluster.
-- The automated validation workflow has no reviewer/Environment jobs. Existing public-index approvals and unrelated service controls are unchanged.
+## Política atual de DEV
 
-Initial image PR #1 was merged by the App at be3b7bf; previous guard-change PR #2 was closed without merge because the owner changed the DEV policy. Branches/history remain available. No paid GitHub feature or repository visibility change occurred.
+A política DEV autorizada permite publicação automática após CI bem-sucedido, **sem aprovação humana ou GMUD** nesta fase. Aprovações poderão ser incorporadas posteriormente. Testes, análise de segurança, imagens imutáveis e validação exata de alterações de imagem continuam obrigatórios.
 
-Apply the versioned bootstrap Application/AppProject to namespace argocd on the dedicated management K3s when changing delivery policy. These are management resources; application Deployments are reconciled only by Argo CD. Do not use the frozen main-repository manifests to deploy.
+- Política API: `gitops/environments/dev/release-policy.json`, restrita ao Deployment Orders API no namespace `orders-api`.
+- GitHub App: confere CI, SHA/digest e diff exclusivo de imagem; mescla a proposta quando `DEV_AUTO_PROMOTE=true` na API.
+- Application: `gitops/bootstrap/orders-application.yaml`, com sincronização automática e autocorreção habilitadas, mas sem pruning.
+- O Argo CD roda em K3s numa EC2 dedicada de gerenciamento e reconcilia o EKS.
 
-To pause: set DEV_AUTO_PROMOTE=false, set auto_promote=false in the DEV policy, set Application syncPolicy.automated.enabled=false and apply the management configuration. For application rollback, propose a previously validated immutable image in GitOps and let Argo reconcile; never force sync/prune or directly patch the EKS Deployment.
+A proposta inicial de imagem PR #1 foi mesclada no commit `be3b7bf`. A PR #2 de alteração de proteção foi encerrada sem merge após mudança da política DEV. O histórico permanece disponível.
 
-## Orders Worker, HPA and application hosts
+## Como alterar a política de entrega
 
-Worker source/CI: https://github.com/rlcosmo/cosmotech-orders-worker. API and worker
-each declare an autoscaling/v2 HPA, Service, probes and shared-ALB HTTPS Ingress:
+Revise a política versionada e aplique os recursos bootstrap Application/AppProject no namespace `argocd` do K3s de gerenciamento. **Não utilize os manifests congelados do repositório principal** para fazer deploy. Deployments de aplicações devem ser reconciliados somente pelo Argo CD.
 
-| Application | Host | HPA |
+Para suspender a automação, configure `DEV_AUTO_PROMOTE=false`, `auto_promote=false` na política DEV e `syncPolicy.automated.enabled=false` na Application; aplique a configuração de gerenciamento. Para rollback, proponha no GitOps uma imagem imutável anterior validada. Não force sync/prune nem edite diretamente o Deployment EKS.
+
+## Aplicações, hosts e escalabilidade
+
+| Aplicação | Host HTTPS | Capacidade |
 | --- | --- | --- |
-| orders-api-dev | orders-api-dev.cosmotechsolutions.com.br | 1–4, container CPU 70% |
-| orders-worker-dev | orders-worker-dev.cosmotechsolutions.com.br | 1–4, container CPU 70% |
+| Orders API | `orders-api-dev.cosmotechsolutions.com.br` | Verificar HPA vigente |
+| Orders Worker | `orders-worker-dev.cosmotechsolutions.com.br` | Verificar HPA vigente |
 
-The worker host serves only /health/live and /health/ready; business events arrive
-through SQS. CPU scaling does not measure queue backlog. A healthy metrics-server
-and ContainerResource metrics support are prerequisites. Scale-down waits 300s
-and removes at most one replica/minute. More replicas can require extra node
-capacity and increase AWS calls. No data schema, retry or retention changes.
+O histórico descrevia HPA entre 1 e 4 réplicas com alvo CPU de 70%; os READMEs atuais das aplicações documentam **duas réplicas fixas em DEV**. Consulte sempre o manifesto sincronizado antes de alterar capacidade. O Worker expõe apenas `/health/live` e `/health/ready`; eventos de negócio entram pela API e seguem via SQS. CPU não representa backlog da fila. A redução de escala tem estabilização de 300 segundos; mais réplicas podem elevar custos.
 
-Applications omit spec.replicas and bootstrap Applications ignore that field with
-RespectIgnoreDifferences=true so Argo does not undo HPA scaling. The project
-allows HPA/Ingress and workload tree visibility in exactly the two namespaces.
-RBAC is delivered from cosmotech-kubernetes-rbac, not from app source.
+Os manifests de aplicações omitem `spec.replicas` para não disputar escala com o HPA. O Argo ignora esse campo com `RespectIgnoreDifferences=true`. Permissões RBAC para HPA, Ingress e visualização dos workloads são mantidas em [cosmotech-kubernetes-rbac](https://github.com/rlcosmo/cosmotech-kubernetes-rbac), limitadas aos namespaces necessários.
 
-The main-branch deliver-dev workflow obtains its own short-lived OIDC role and
-invokes the fixed CosmoTech-Sync-Orders-GitOps SSM document on the existing Argo
-host. It reconciles versioned AppProject/Application configuration and checks
-Synced/Healthy at the exact main revision. It never patches EKS Deployment images.
-Only the fixed document and dedicated host can be reached by this CI role.
-Namespaced application delivery remains owned by Argo CD.
+## Entrega e verificações
 
-Cloudflare DNS already resolves both hosts to the existing ALB. The infrastructure
-WAF rules permit these exact hosts with per-IP rate limits, preserving all existing
-rules. Worker serves health only; API is the SQS entrypoint.
+O workflow `deliver-dev` na branch `main` obtém credenciais OIDC temporárias e chama o documento SSM `CosmoTech-Sync-Orders-GitOps` no host Argo existente. Reconcilia AppProject/Application versionados e verifica `Synced/Healthy` na revisão exata de `main`. Essa role CI só alcança o documento e host permitidos; não altera imagens diretamente no EKS.
 
-Image-only auto-promotion validates one selected app path and an exact successful
-source SHA/digest. API policy stays scoped to API; the worker has a separate
-policy and callers use --application orders-worker. General configuration changes run manifest validation and deploy automatically
-from main without reviewer gates; the image bot remains limited to image-only
-changes. CI validates HPA,
-hosts and service/probe wiring for every application plus negative promotion
-tests for extra files, namespace changes, pod changes, unpinned images and wrong
-digests. Recovery: pause sync/promotion, revert the previous validated image and
-configuration in Git, then observe Argo and HPA. Preserve queues/tables/inventory.
+Os dois hosts já resolvem pelo Cloudflare DNS para o ALB existente. O WAF permite esses hosts com limites de requisições por IP, preservando regras anteriores.
+
+A promoção de imagens é separada por aplicação: a API mantém sua própria política e o Worker usa `--application orders-worker`. Mudanças gerais de configuração passam por validação de manifests e entrega automática de `main`; o bot de imagens só altera referências de imagem. A validação cobre HPA, hosts, Services, probes e cenários negativos como arquivos extras, mudança de namespace, alterações indevidas em Pods e digest incorreto.
+
+## Recuperação
+
+1. Suspenda sincronização e promoção automática.
+2. Reverta imagem e configuração para uma versão previamente validada no Git.
+3. Observe o estado do Argo CD, HPA, endpoints e logs.
+4. Preserve filas SQS, tabelas DynamoDB e inventário; não apague dados para corrigir rollout.
 
 ## Origem das aplicações
 
