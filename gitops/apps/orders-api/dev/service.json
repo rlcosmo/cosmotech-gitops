@@ -6,6 +6,9 @@
     "namespace": "orders-api",
     "labels": {
       "app": "orders-api"
+    },
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000002"
     }
   },
   "spec": {

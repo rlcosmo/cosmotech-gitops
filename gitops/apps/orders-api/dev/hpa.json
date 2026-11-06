@@ -3,7 +3,10 @@
   "kind": "HorizontalPodAutoscaler",
   "metadata": {
     "name": "orders-api",
-    "namespace": "orders-api"
+    "namespace": "orders-api",
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000002"
+    }
   },
   "spec": {
     "scaleTargetRef": {

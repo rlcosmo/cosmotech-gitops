@@ -6,7 +6,10 @@
       "app": "orders-api"
     },
     "name": "orders-api",
-    "namespace": "orders-api"
+    "namespace": "orders-api",
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000002"
+    }
   },
   "spec": {
     "progressDeadlineSeconds": 600,
@@ -33,7 +36,8 @@
           "sidecar.istio.io/proxyMemoryLimit": "256Mi"
         },
         "labels": {
-          "app": "orders-api"
+          "app": "orders-api",
+          "cosmotech.io/gmud-id": "RCL000002"
         }
       },
       "spec": {
@@ -74,7 +78,7 @@
               },
               {
                 "name": "RELEASE_VERSION",
-                "value": "sha256:712adc3cede0fba76c238ee80fcc6a65c597aa16b1f16b3b510acfc7634aa578"
+                "value": "sha256:d60d8fba7a842e071bf2589395ca10c1a633b5b8046f8017c3296329fd162090"
               }
             ],
             "envFrom": [
@@ -84,7 +88,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api@sha256:712adc3cede0fba76c238ee80fcc6a65c597aa16b1f16b3b510acfc7634aa578",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api@sha256:d60d8fba7a842e071bf2589395ca10c1a633b5b8046f8017c3296329fd162090",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,
