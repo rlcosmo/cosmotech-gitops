@@ -1,0 +1,205 @@
+{
+  "policy": "replicaset-retention",
+  "revisionHistoryLimit": 2,
+  "effect_id": "1878f924deeac3e803c1140238de1a10695727d86b31d3e6a2914997603fd622",
+  "parent_revision": "01247de7a67ce82727791f367e041a9842d43257",
+  "gmud_context": "RCL000009",
+  "glpi_change_id": 13,
+  "release_execution_context": "3wN30fLGZrBmhd214817by",
+  "scope": "spec.revisionHistoryLimit only; no image, pod template, replica count or approval changes",
+  "resources": {
+    "deployment.json": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "orders-api"
+        },
+        "name": "orders-api",
+        "namespace": "orders-api",
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000009"
+        }
+      },
+      "spec": {
+        "progressDeadlineSeconds": 600,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "app": "orders-api"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "instrumentation.opentelemetry.io/lab": "enabled",
+              "sidecar.istio.io/proxyCPU": "50m",
+              "sidecar.istio.io/proxyCPULimit": "250m",
+              "sidecar.istio.io/proxyMemory": "64Mi",
+              "sidecar.istio.io/proxyMemoryLimit": "256Mi"
+            },
+            "labels": {
+              "app": "orders-api",
+              "app.kubernetes.io/version": "2.0.4-lab",
+              "cosmotech.io/release": "api-2.0.4-lab-20",
+              "cosmotech.io/gmud-id": "RCL000009"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "OTEL_SERVICE_NAME",
+                    "value": "orders-api"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+                    "value": "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_PROTOCOL",
+                    "value": "http/protobuf"
+                  },
+                  {
+                    "name": "OTEL_TRACES_EXPORTER",
+                    "value": "otlp"
+                  },
+                  {
+                    "name": "OTEL_METRICS_EXPORTER",
+                    "value": "none"
+                  },
+                  {
+                    "name": "OTEL_LOGS_EXPORTER",
+                    "value": "none"
+                  },
+                  {
+                    "name": "OTEL_EXPORTER_OTLP_INSECURE",
+                    "value": "true"
+                  },
+                  {
+                    "name": "OTEL_RESOURCE_ATTRIBUTES",
+                    "value": "deployment.environment=dev,service.namespace=orders"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:08640ca7779987da0dd575e87a83948875ee9a364ddcee5765e88420bf7f0eb1"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "orders-config"
+                    }
+                  }
+                ],
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:api-2.0.4-lab-20",
+                "imagePullPolicy": "IfNotPresent",
+                "livenessProbe": {
+                  "failureThreshold": 3,
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 2
+                },
+                "name": "orders-api",
+                "ports": [
+                  {
+                    "containerPort": 8000,
+                    "name": "http",
+                    "protocol": "TCP"
+                  }
+                ],
+                "readinessProbe": {
+                  "failureThreshold": 3,
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 5,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 2
+                },
+                "resources": {
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "mountPath": "/otel",
+                    "name": "otel-java-agent",
+                    "readOnly": true
+                  }
+                ],
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 2,
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 2,
+                  "failureThreshold": 30,
+                  "successThreshold": 1
+                }
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "orders-api-sa",
+            "serviceAccountName": "orders-api-sa",
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "emptyDir": {},
+                "name": "otel-java-agent"
+              }
+            ]
+          }
+        },
+        "minReadySeconds": 10
+      }
+    }
+  }
+}
