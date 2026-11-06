@@ -90,7 +90,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:api-2.0.3-lab-19@sha256:bb714d3f611534bd1f0d712c05d9caf38d73d4b9177de7ce976b1519eb084307",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:api-2.0.3-lab-19",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,
