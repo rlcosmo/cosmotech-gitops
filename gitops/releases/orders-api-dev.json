@@ -1,22 +1,14 @@
 {
   "application": "orders-api",
+  "gmud_id": 3,
+  "gmud_release_id": "3da758c177021feee6f5cb654683ad525abd5cda349cd654141de992aa746490",
+  "effect_id": "4455359f9f40e5550e72bb7fdb2ac9eea801da6d694343a6f64e12c8d889a066",
+  "effect": "deploy:api",
+  "kestra_execution_id": "5hHDHAD5Edszef1FQbH4Cy",
+  "source_repository": "rlcosmo/cosmotech-orders-api",
+  "source_sha": "47b408bd448effb4328e70bdb59899350c4b2be0",
+  "requested_source_sha": "47b408bd448effb4328e70bdb59899350c4b2be0",
   "resources": {
-    "configmap.json": {
-      "apiVersion": "v1",
-      "data": {
-        "AWS_DEFAULT_REGION": "us-east-1",
-        "DYNAMODB_TABLE": "aws-eks-istio-lab-dev-orders-data",
-        "SQS_QUEUE_URL": "https://sqs.us-east-1.amazonaws.com/414053644145/aws-eks-istio-lab-dev-orders-eks",
-        "SYNTHETIC_EXTERNAL_URL": "https://example.com/",
-        "SYNTHETIC_INTERVAL_SECONDS": "300",
-        "SYNTHETIC_PEER_URL": "http://orders-worker.orders-worker.svc.cluster.local:8000/diagnostics/ping"
-      },
-      "kind": "ConfigMap",
-      "metadata": {
-        "name": "orders-config",
-        "namespace": "orders-api"
-      }
-    },
     "deployment.json": {
       "apiVersion": "apps/v1",
       "kind": "Deployment",
@@ -28,7 +20,6 @@
         "namespace": "orders-api"
       },
       "spec": {
-        "minReadySeconds": 10,
         "progressDeadlineSeconds": 600,
         "revisionHistoryLimit": 10,
         "selector": {
@@ -91,6 +82,10 @@
                   {
                     "name": "OTEL_RESOURCE_ATTRIBUTES",
                     "value": "deployment.environment=dev,service.namespace=orders"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:712adc3cede0fba76c238ee80fcc6a65c597aa16b1f16b3b510acfc7634aa578"
                   }
                 ],
                 "envFrom": [
@@ -100,7 +95,7 @@
                     }
                   }
                 ],
-                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:sha-08c8782012f7138a5b2a34385e8cb063f9bd2668@sha256:c452d671c9a8834cecae8792b07afeccdbdf3a2316ee539a467d0bf5c6fd7c5b",
+                "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api@sha256:712adc3cede0fba76c238ee80fcc6a65c597aa16b1f16b3b510acfc7634aa578",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 3,
@@ -153,18 +148,6 @@
                   },
                   "readOnlyRootFilesystem": true
                 },
-                "startupProbe": {
-                  "failureThreshold": 30,
-                  "httpGet": {
-                    "path": "/health/live",
-                    "port": "http",
-                    "scheme": "HTTP"
-                  },
-                  "initialDelaySeconds": 2,
-                  "periodSeconds": 5,
-                  "successThreshold": 1,
-                  "timeoutSeconds": 2
-                },
                 "terminationMessagePath": "/dev/termination-log",
                 "terminationMessagePolicy": "File",
                 "volumeMounts": [
@@ -173,7 +156,19 @@
                     "name": "otel-java-agent",
                     "readOnly": true
                   }
-                ]
+                ],
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 2,
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 2,
+                  "failureThreshold": 30,
+                  "successThreshold": 1
+                }
               }
             ],
             "dnsPolicy": "ClusterFirst",
@@ -197,7 +192,49 @@
               }
             ]
           }
+        },
+        "minReadySeconds": 10
+      }
+    },
+    "configmap.json": {
+      "apiVersion": "v1",
+      "data": {
+        "AWS_DEFAULT_REGION": "us-east-1",
+        "DYNAMODB_TABLE": "aws-eks-istio-lab-dev-orders-data",
+        "SQS_QUEUE_URL": "https://sqs.us-east-1.amazonaws.com/414053644145/aws-eks-istio-lab-dev-orders-eks",
+        "SYNTHETIC_INTERVAL_SECONDS": "300",
+        "SYNTHETIC_PEER_URL": "http://orders-worker.orders-worker.svc.cluster.local:8000/diagnostics/ping",
+        "SYNTHETIC_EXTERNAL_URL": "https://example.com/"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "orders-config",
+        "namespace": "orders-api"
+      }
+    },
+    "service.json": {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "orders-api",
+        "namespace": "orders-api",
+        "labels": {
+          "app": "orders-api"
         }
+      },
+      "spec": {
+        "type": "ClusterIP",
+        "selector": {
+          "app": "orders-api"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 8000,
+            "targetPort": "http",
+            "protocol": "TCP"
+          }
+        ]
       }
     },
     "hpa.json": {
@@ -208,47 +245,47 @@
         "namespace": "orders-api"
       },
       "spec": {
-        "behavior": {
-          "scaleDown": {
-            "policies": [
-              {
-                "periodSeconds": 60,
-                "type": "Pods",
-                "value": 1
-              }
-            ],
-            "stabilizationWindowSeconds": 300
-          },
-          "scaleUp": {
-            "policies": [
-              {
-                "periodSeconds": 60,
-                "type": "Pods",
-                "value": 1
-              }
-            ],
-            "stabilizationWindowSeconds": 0
-          }
-        },
-        "maxReplicas": 4,
-        "metrics": [
-          {
-            "containerResource": {
-              "container": "orders-api",
-              "name": "cpu",
-              "target": {
-                "averageUtilization": 70,
-                "type": "Utilization"
-              }
-            },
-            "type": "ContainerResource"
-          }
-        ],
-        "minReplicas": 1,
         "scaleTargetRef": {
           "apiVersion": "apps/v1",
           "kind": "Deployment",
           "name": "orders-api"
+        },
+        "minReplicas": 1,
+        "maxReplicas": 4,
+        "metrics": [
+          {
+            "type": "ContainerResource",
+            "containerResource": {
+              "name": "cpu",
+              "container": "orders-api",
+              "target": {
+                "type": "Utilization",
+                "averageUtilization": 70
+              }
+            }
+          }
+        ],
+        "behavior": {
+          "scaleDown": {
+            "stabilizationWindowSeconds": 300,
+            "policies": [
+              {
+                "type": "Pods",
+                "value": 1,
+                "periodSeconds": 60
+              }
+            ]
+          },
+          "scaleUp": {
+            "stabilizationWindowSeconds": 0,
+            "policies": [
+              {
+                "type": "Pods",
+                "value": 1,
+                "periodSeconds": 60
+              }
+            ]
+          }
         }
       }
     },
@@ -256,16 +293,16 @@
       "apiVersion": "networking.k8s.io/v1",
       "kind": "Ingress",
       "metadata": {
+        "name": "orders-api-dev",
+        "namespace": "orders-api",
         "annotations": {
           "alb.ingress.kubernetes.io/group.name": "observability",
           "alb.ingress.kubernetes.io/group.order": "20",
-          "alb.ingress.kubernetes.io/healthcheck-path": "/health/ready",
+          "alb.ingress.kubernetes.io/target-type": "ip",
           "alb.ingress.kubernetes.io/listen-ports": "[{\"HTTPS\":443}]",
-          "alb.ingress.kubernetes.io/success-codes": "200",
-          "alb.ingress.kubernetes.io/target-type": "ip"
-        },
-        "name": "orders-api-dev",
-        "namespace": "orders-api"
+          "alb.ingress.kubernetes.io/healthcheck-path": "/health/ready",
+          "alb.ingress.kubernetes.io/success-codes": "200"
+        }
       },
       "spec": {
         "ingressClassName": "alb",
@@ -275,6 +312,8 @@
             "http": {
               "paths": [
                 {
+                  "path": "/",
+                  "pathType": "Prefix",
                   "backend": {
                     "service": {
                       "name": "orders-api",
@@ -282,42 +321,13 @@
                         "number": 8000
                       }
                     }
-                  },
-                  "path": "/",
-                  "pathType": "Prefix"
+                  }
                 }
               ]
             }
           }
         ]
       }
-    },
-    "service.json": {
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "labels": {
-          "app": "orders-api"
-        },
-        "name": "orders-api",
-        "namespace": "orders-api"
-      },
-      "spec": {
-        "ports": [
-          {
-            "name": "http",
-            "port": 8000,
-            "protocol": "TCP",
-            "targetPort": "http"
-          }
-        ],
-        "selector": {
-          "app": "orders-api"
-        },
-        "type": "ClusterIP"
-      }
     }
-  },
-  "source_repository": "rlcosmo/cosmotech-orders-api",
-  "source_sha": "08c8782012f7138a5b2a34385e8cb063f9bd2668"
+  }
 }

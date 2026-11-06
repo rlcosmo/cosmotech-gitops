@@ -9,7 +9,6 @@
     "namespace": "orders-api"
   },
   "spec": {
-    "minReadySeconds": 10,
     "progressDeadlineSeconds": 600,
     "revisionHistoryLimit": 10,
     "selector": {
@@ -72,6 +71,10 @@
               {
                 "name": "OTEL_RESOURCE_ATTRIBUTES",
                 "value": "deployment.environment=dev,service.namespace=orders"
+              },
+              {
+                "name": "RELEASE_VERSION",
+                "value": "sha256:712adc3cede0fba76c238ee80fcc6a65c597aa16b1f16b3b510acfc7634aa578"
               }
             ],
             "envFrom": [
@@ -81,7 +84,7 @@
                 }
               }
             ],
-            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api:sha-08c8782012f7138a5b2a34385e8cb063f9bd2668@sha256:c452d671c9a8834cecae8792b07afeccdbdf3a2316ee539a467d0bf5c6fd7c5b",
+            "image": "414053644145.dkr.ecr.us-east-1.amazonaws.com/aws-eks-istio-lab-dev-orders-api@sha256:712adc3cede0fba76c238ee80fcc6a65c597aa16b1f16b3b510acfc7634aa578",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,
@@ -134,18 +137,6 @@
               },
               "readOnlyRootFilesystem": true
             },
-            "startupProbe": {
-              "failureThreshold": 30,
-              "httpGet": {
-                "path": "/health/live",
-                "port": "http",
-                "scheme": "HTTP"
-              },
-              "initialDelaySeconds": 2,
-              "periodSeconds": 5,
-              "successThreshold": 1,
-              "timeoutSeconds": 2
-            },
             "terminationMessagePath": "/dev/termination-log",
             "terminationMessagePolicy": "File",
             "volumeMounts": [
@@ -154,7 +145,19 @@
                 "name": "otel-java-agent",
                 "readOnly": true
               }
-            ]
+            ],
+            "startupProbe": {
+              "httpGet": {
+                "path": "/health/live",
+                "port": "http",
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 2,
+              "periodSeconds": 5,
+              "timeoutSeconds": 2,
+              "failureThreshold": 30,
+              "successThreshold": 1
+            }
           }
         ],
         "dnsPolicy": "ClusterFirst",
@@ -178,6 +181,7 @@
           }
         ]
       }
-    }
+    },
+    "minReadySeconds": 10
   }
 }
