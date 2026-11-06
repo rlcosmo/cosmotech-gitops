@@ -3,7 +3,10 @@
   "kind": "HorizontalPodAutoscaler",
   "metadata": {
     "name": "orders-worker",
-    "namespace": "orders-worker"
+    "namespace": "orders-worker",
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000001"
+    }
   },
   "spec": {
     "scaleTargetRef": {
@@ -12,7 +15,7 @@
       "name": "orders-worker"
     },
     "minReplicas": 1,
-    "maxReplicas": 4,
+    "maxReplicas": 1,
     "metrics": [
       {
         "type": "ContainerResource",

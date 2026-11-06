@@ -11,6 +11,9 @@
   "kind": "ConfigMap",
   "metadata": {
     "name": "orders-config",
-    "namespace": "orders-worker"
+    "namespace": "orders-worker",
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000001"
+    }
   }
 }

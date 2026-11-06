@@ -1,0 +1,14 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "orders-worker-canary-control",
+    "namespace": "orders-worker",
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000001"
+    }
+  },
+  "data": {
+    "lease.json": "{\"mode\":\"drain\",\"expires_at\":0}"
+  }
+}

@@ -6,6 +6,9 @@
     "namespace": "orders-worker",
     "labels": {
       "app": "orders-worker"
+    },
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000001"
     }
   },
   "spec": {

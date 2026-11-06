@@ -6,7 +6,10 @@
       "app": "orders-worker"
     },
     "name": "orders-worker",
-    "namespace": "orders-worker"
+    "namespace": "orders-worker",
+    "annotations": {
+      "cosmotech.io/gmud-id": "RCL000001"
+    }
   },
   "spec": {
     "minReadySeconds": 10,
