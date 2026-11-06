@@ -5,7 +5,7 @@
     "name": "orders-api",
     "namespace": "orders-api",
     "annotations": {
-      "cosmotech.io/gmud-id": "RCL000007"
+      "cosmotech.io/gmud-id": "RCL000009"
     }
   },
   "spec": {
@@ -14,8 +14,8 @@
       "kind": "Deployment",
       "name": "orders-api"
     },
-    "minReplicas": 1,
-    "maxReplicas": 4,
+    "minReplicas": 2,
+    "maxReplicas": 2,
     "metrics": [
       {
         "type": "ContainerResource",
