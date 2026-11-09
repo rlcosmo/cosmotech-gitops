@@ -34,7 +34,7 @@ class ObservabilityV2Tests(unittest.TestCase):
         self.assertEqual(app['destination']['namespace'],'observability')
         self.assertFalse(app['syncPolicy']['automated']['prune'])
         self.assertTrue(app['syncPolicy']['automated']['selfHeal'])
-        self.assertTrue(project['signatureKeys'])
+        self.assertEqual(project['signatureKeys'], [{'keyID':'B5690EEEBB952194'}])
         for name in ['alerts.json','dashboard.json']:
             obj=read('gitops/observability/v2-sqs-workers/'+name)
             self.assertEqual(obj['metadata']['namespace'],'observability')
