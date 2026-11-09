@@ -8,7 +8,10 @@
     },
     "dashboard.json": {
       "path": "ops/kubernetes/v2-sqs-dashboard.json",
-      "sha256": "4182a5b465d7062923004492e2e5a502ec1970e69d607f4f577c9790ad57908c"
+      "sha256": "8c8382f220ad1525fc4978e052d018735c83df4b8aade36e4ae9c7fd05048e41",
+      "source_sha256": "4182a5b465d7062923004492e2e5a502ec1970e69d607f4f577c9790ad57908c",
+      "transformation": "Remove grafana_dashboard auto-import label; retain dashboard data byte-for-byte. Existing scoped API publisher owns the live UID/folder.",
+      "dashboard_data_sha256": "1a8be0a9e91db005dc8dbe284e85c5c54d0c3d2af208714775a610ab10a13e5c"
     }
   }
 }
