@@ -16,6 +16,10 @@ class ObservabilityV2Tests(unittest.TestCase):
         self.assertEqual({p.name for p in folder.iterdir()},set(source['files']))
         for name,record in source['files'].items():
             self.assertEqual(hashlib.sha256((folder/name).read_bytes()).hexdigest(),record['sha256'])
+        dashboard=read('gitops/observability/v2-sqs-workers/dashboard.json')
+        self.assertNotIn('grafana_dashboard',dashboard['metadata']['labels'])
+        self.assertEqual(hashlib.sha256(dashboard['data']['v2-sqs-workers.json'].encode()).hexdigest(),
+                         source['files']['dashboard.json']['dashboard_data_sha256'])
         rules=read('gitops/observability/v2-sqs-workers/alerts.json')
         names=[r['alert'] for g in rules['spec']['groups'] for r in g['rules']]
         self.assertEqual(set(names),{'CosmoTechSQSEvidenceUnavailable','CosmoTechSQSBacklog',
