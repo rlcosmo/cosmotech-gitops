@@ -12,6 +12,30 @@
       "source_sha256": "4182a5b465d7062923004492e2e5a502ec1970e69d607f4f577c9790ad57908c",
       "transformation": "Remove grafana_dashboard auto-import label; retain dashboard data byte-for-byte. Existing scoped API publisher owns the live UID/folder.",
       "dashboard_data_sha256": "1a8be0a9e91db005dc8dbe284e85c5c54d0c3d2af208714775a610ab10a13e5c"
+    },
+    "gmud-24h.json": {
+      "path": "ops/kubernetes/gmud-24h-dashboard.json",
+      "origin_commit": "53159b7dce2364399e64b9fbbb2afee9456148de",
+      "sha256": "5ef0be1d2b07838ba466bd842d81f9d0ba04045cd99431a4452390c5a9bc50d8",
+      "ownership": "Existing observability project ConfigMap scope; no workload/storage permission changes."
+    },
+    "audited-canary.json": {
+      "path": "ops/kubernetes/audited-dashboards/cosmotech-worker-canary-dashboard.json",
+      "origin_commit": "53159b7dce2364399e64b9fbbb2afee9456148de",
+      "sha256": "1bde4126bcb168e7a87385e31ce3191961c6b41db42f4d9a3f3c06a55e8cef54",
+      "ownership": "Existing observability project ConfigMap scope; no workload/storage permission changes."
+    },
+    "audited-lab-tools.json": {
+      "path": "ops/kubernetes/audited-dashboards/grafana-dashboard-lab.json",
+      "origin_commit": "53159b7dce2364399e64b9fbbb2afee9456148de",
+      "sha256": "c49fe23cb9f0cce50a5a9b2fd83b400e96a4f825be59a5c591625ed79bfdfb71",
+      "ownership": "Existing observability project ConfigMap scope; no workload/storage permission changes."
+    },
+    "audited-grafana-overview.json": {
+      "path": "ops/kubernetes/audited-dashboards/prometheus-kube-prometheus-grafana-overview.json",
+      "origin_commit": "53159b7dce2364399e64b9fbbb2afee9456148de",
+      "sha256": "0b8777531ba7b1764ba25b74a97318828ca1cfcf4cd5918073c0c391a3a3a666",
+      "ownership": "Existing observability project ConfigMap scope; no workload/storage permission changes."
     }
   }
 }
