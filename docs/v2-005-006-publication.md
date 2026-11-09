@@ -2,7 +2,7 @@
 
 **Do not merge this draft until AWS access and the operational prerequisites below are verified.** The existing Argo application automatically syncs main. This branch does not change any Application, project permission, workflow, approval/release policy, Orders workload, node group, storage, Power Manager or DR resource.
 
-Observability source PRs #7 and #8 passed CI and merged; source commit for these new ConfigMaps is `53159b7dce2364399e64b9fbbb2afee9456148de` in `rlcosmo/cosmotech-observability`. The source provenance manifest retains the exact old dashboard and eight alert-rule bytes, and adds per-file commit/SHA256 for four new/revised ConfigMaps.
+Observability source PRs #7, #8 and #9 passed CI and merged; original audited ConfigMaps use source commit `53159b7dce2364399e64b9fbbb2afee9456148de`, and the GMUD timeline uses `af42adbf821faeb490c4ed92df0367852f7d2cfa` in `rlcosmo/cosmotech-observability`. The source provenance manifest retains the exact old dashboard and eight alert-rule bytes, and adds per-file commit/SHA256 for four new/revised ConfigMaps.
 
 The four ConfigMaps contain:
 
@@ -35,3 +35,9 @@ Before merging:
 [Actual authenticated Canary capture before changes](evidence/v2-005-006/baseline-canary.png). This is the original live dashboard, not a mockup or a screenshot of the unpublished GMUD dashboard. New screenshots are blocked by the account suspension.
 
 Full sanitized baseline and prepared-source documentation: `cosmotech-observability/docs/evidence/v2-005-006/` and `docs/v2-005-006-gmud-and-audit.md`.
+
+## Completed offline validation
+
+47 observability tests passed locally and in CI (runs `42654492901`, `42686788436`, `42687387911`). GitOps source integrity and application constraints passed all 13 tests locally, plus both draft PR CI checks. The historical fixture reconciles 13 changes / five automatic / eight manual approvals / ten validated deploys / three rollbacks, with no fixture events emitted to live telemetry. Timeline seconds are converted to Grafana milliseconds, and rolling-hour buckets include partial boundary hours. Source failure removes old business zeros and logs no credential content.
+
+Account suspension still blocks all final operational acceptance, new dashboard captures and fresh counts. The installation command result and current pods/datasources/Argo/Zabbix state remain unknown.
