@@ -2,7 +2,7 @@ name: deliver-dev
 on:
   push:
     branches: [main]
-    paths: [gitops/**, scripts/**, tests/**, .github/workflows/deliver-dev.yml]
+    paths: [gitops/apps/**, gitops/releases/orders-api-dev.json, gitops/releases/orders-worker-dev.json]
   workflow_dispatch:
 permissions:
   contents: read

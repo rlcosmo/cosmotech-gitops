@@ -7,3 +7,5 @@ Bootstrap only the two objects from this directory after review/CI and install t
 Check Application revision and Synced/Healthy, live PrometheusRule names and manager annotation, then Prometheus `/api/v1/rules` for all eight healthy rules and authenticated Grafana dashboard/datasource requests. Kubernetes reconciliation alone does not certify rule evaluation while Prometheus or Grafana is unavailable.
 
 The dashboard ConfigMap is a versioned source artifact, without the grafana_dashboard sidecar-import label. The existing scoped API publisher retains ownership of the live UID and Lab V2 folder. This prevents duplicate provisioning or moving existing Grafana data; authenticating and validating that dashboard still requires Grafana recovery. The provenance manifest records the original source hash, artifact hash and dashboard-data hash.
+
+The orders delivery workflow triggers only for application manifests or their release receipts. Infrastructure/observability/DR commits run validation and the isolated Argo reconciliation without starting an Orders rollout. Manual delivery remains guarded by the existing signed-publisher verification.
