@@ -1,0 +1,30 @@
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "Application",
+  "metadata": {
+    "name": "observability-v2-sqs-workers",
+    "namespace": "argocd"
+  },
+  "spec": {
+    "project": "observability-v2",
+    "source": {
+      "repoURL": "ssh://git@ssh.github.com:443/rlcosmo/cosmotech-gitops.git",
+      "targetRevision": "main",
+      "path": "gitops/observability/v2-sqs-workers"
+    },
+    "destination": {
+      "server": "https://4A29FB418B3281BEF628A7122A8CAEDD.gr7.us-east-1.eks.amazonaws.com",
+      "namespace": "observability"
+    },
+    "syncPolicy": {
+      "automated": {
+        "enabled": true,
+        "prune": false,
+        "selfHeal": true
+      },
+      "syncOptions": [
+        "CreateNamespace=false"
+      ]
+    }
+  }
+}
