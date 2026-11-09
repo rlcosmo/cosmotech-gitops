@@ -1,0 +1,77 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "AppProject",
+      "metadata": {
+        "name": "cosmotech-dr",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "sourceRepos": [
+          "https://github.com/rlcosmo/cosmotech-gitops.git"
+        ],
+        "destinations": [
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "orders-api"
+          },
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "orders-worker"
+          },
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "istio-system"
+          },
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "observability"
+          },
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "dr-test"
+          }
+        ],
+        "clusterResourceWhitelist": [
+          {
+            "group": "",
+            "kind": "Namespace"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-orders",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr",
+        "source": {
+          "repoURL": "https://github.com/rlcosmo/cosmotech-gitops.git",
+          "targetRevision": "REQUIRES_REVIEWED_DR_COMMIT",
+          "path": "disaster-recovery/rendered",
+          "directory": {
+            "recurse": false
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "orders-api"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          }
+        }
+      }
+    }
+  ]
+}

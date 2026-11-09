@@ -1,0 +1,23 @@
+name: Validate isolated DR manifests
+on:
+  pull_request:
+    paths: ['disaster-recovery/**', '.github/workflows/dr-validation.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python disaster-recovery/validate.py
+      - run: python disaster-recovery/render_bootstrap.py --revision "$GITHUB_SHA" > "$RUNNER_TEMP/dr-bootstrap.json"
+      - name: Validate standard Kubernetes schemas
+        run: |
+          curl -fsSL --retry 2 https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz -o "$RUNNER_TEMP/kubeconform.tar.gz"
+          echo "9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883  $RUNNER_TEMP/kubeconform.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/kubeconform.tar.gz" -C "$RUNNER_TEMP" kubeconform
+          "$RUNNER_TEMP/kubeconform" -strict -summary -ignore-missing-schemas -kubernetes-version 1.36.0 disaster-recovery/rendered/resources.json
+      - run: python -m unittest discover -s tests -v
+# New DR paths do not match deliver-dev's push filters. No sync/deploy job here.
