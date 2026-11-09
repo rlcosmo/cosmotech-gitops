@@ -30,3 +30,30 @@ failback instructions are maintained in infrastructure `docs/dr/runbooks.md` and
 
 Validation: `python disaster-recovery/validate.py`; existing unit tests also pass.
 A new validation-only workflow has no AWS identity and no deploy/sync job.
+
+## Durable outbox runtime (continuation)
+
+The companion infrastructure runtime accepts HTTP 202 only after DynamoDB journal
+commit. Its API, publisher, metrics exporter and unchanged pinned worker processor
+are built into a SEPARATE DR image. No primary application repository or deployment
+is changed. Current images/manifests remain legacy, passive and NOT outbox-enabled.
+
+After AWS release, scoped infrastructure creation, source/image scan and immutable
+ECR publication, compile the complete replacement bundle with:
+
+```
+python disaster-recovery/render_outbox.py --image <verified-Ohio-outbox-repository@sha256:digest>
+```
+
+The renderer requires the exact `cosmotech-dr-orders-outbox` repository in Ohio,
+keeps ALL replicas zero and both namespace activation files paused. It does not
+modify the committed manifests or apply/sync anything. Review/commit the output to
+the DR-only rendered path before Argo sync. Publish digest must be verified from
+ECR; fixture hashes used in validation do not represent real published images.
+
+Activation requires the same independently fenced epoch in the two namespace
+control objects, `mode=run` and an expiry within five minutes, renewed only by an
+authorized DR operator. Expiry drains publishers/workers and stops API acceptance;
+this is an operational lease, NOT a cross-region fence. Stock/order checkpoints
+remain transactional in the restored table; external payment/shipping providers
+would require their own idempotency keys. No SQS exactly-once guarantee is made.
