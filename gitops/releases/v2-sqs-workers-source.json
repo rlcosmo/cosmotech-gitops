@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/rlcosmo/cosmotech-observability.git",
+  "commit": "4b1512ce14fe3310e47afffa0e69cba3734f3072",
+  "files": {
+    "alerts.json": {
+      "path": "ops/kubernetes/v2-sqs-worker-alerts.json",
+      "sha256": "8c2e1566166a68de247e178cbc47eca919046cc9075230630d38925e4dea42a0"
+    },
+    "dashboard.json": {
+      "path": "ops/kubernetes/v2-sqs-dashboard.json",
+      "sha256": "4182a5b465d7062923004492e2e5a502ec1970e69d607f4f577c9790ad57908c"
+    }
+  }
+}

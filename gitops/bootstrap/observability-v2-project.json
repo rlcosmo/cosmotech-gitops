@@ -1,0 +1,36 @@
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "AppProject",
+  "metadata": {
+    "name": "observability-v2",
+    "namespace": "argocd"
+  },
+  "spec": {
+    "description": "Only the V2 SQS alert rules and dashboard; no workload or storage ownership",
+    "sourceRepos": [
+      "ssh://git@ssh.github.com:443/rlcosmo/cosmotech-gitops.git"
+    ],
+    "destinations": [
+      {
+        "server": "https://4A29FB418B3281BEF628A7122A8CAEDD.gr7.us-east-1.eks.amazonaws.com",
+        "namespace": "observability"
+      }
+    ],
+    "clusterResourceWhitelist": [],
+    "namespaceResourceWhitelist": [
+      {
+        "group": "",
+        "kind": "ConfigMap"
+      },
+      {
+        "group": "monitoring.coreos.com",
+        "kind": "PrometheusRule"
+      }
+    ],
+    "signatureKeys": [
+      {
+        "keyID": "6C140B9EE5CA76A6"
+      }
+    ]
+  }
+}
