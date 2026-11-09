@@ -1,0 +1,10 @@
+{
+  "account": "414053644145",
+  "region": "us-east-2",
+  "cluster": "cosmotech-dr",
+  "mode": "passive",
+  "images": {
+    "orders-api": "414053644145.dkr.ecr.us-east-2.amazonaws.com/aws-eks-istio-lab-dev-orders-api@sha256:26f90089a1589d8bff24e7ce55db2e840d9670bcd890b6dbe2adc5499ea4e64d",
+    "orders-worker": "414053644145.dkr.ecr.us-east-2.amazonaws.com/aws-eks-istio-lab-dev-orders-worker@sha256:c959c16ca700790691a889b180bd29ea072e23a836d93c9ea0edeeaa0d953895"
+  }
+}
