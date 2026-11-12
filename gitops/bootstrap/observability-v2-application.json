@@ -9,7 +9,7 @@
     "project": "observability-v2",
     "source": {
       "repoURL": "ssh://git@ssh.github.com:443/rlcosmo/cosmotech-gitops.git",
-      "targetRevision": "main",
+      "targetRevision": "04e75cc15c443d88a3e776374ddeeebf4ec37dde",
       "path": "gitops/observability/v2-sqs-workers"
     },
     "destination": {
