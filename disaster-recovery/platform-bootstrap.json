@@ -811,6 +811,36 @@
           ]
         }
       }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-https-routing",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://github.com/rlcosmo/cosmotech-gitops.git",
+          "targetRevision": "main",
+          "path": "disaster-recovery/ingress"
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "istio-system"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "CreateNamespace=false"
+          ]
+        }
+      }
     }
   ]
 }
