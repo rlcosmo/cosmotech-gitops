@@ -1,0 +1,783 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "AppProject",
+      "metadata": {
+        "name": "cosmotech-dr-platform",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "sourceRepos": [
+          "https://argoproj.github.io/argo-helm",
+          "https://github.com/rlcosmo/cosmotech-gitops.git",
+          "https://grafana-community.github.io/helm-charts",
+          "https://grafana.github.io/helm-charts",
+          "https://istio-release.storage.googleapis.com/charts",
+          "https://open-telemetry.github.io/opentelemetry-helm-charts",
+          "https://prometheus-community.github.io/helm-charts"
+        ],
+        "destinations": [
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "argocd"
+          },
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "observability"
+          },
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "istio-system"
+          }
+        ],
+        "clusterResourceWhitelist": [
+          {
+            "group": "",
+            "kind": "Namespace"
+          },
+          {
+            "group": "",
+            "kind": "PersistentVolume"
+          },
+          {
+            "group": "storage.k8s.io",
+            "kind": "StorageClass"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "kind": "ClusterRole"
+          },
+          {
+            "group": "rbac.authorization.k8s.io",
+            "kind": "ClusterRoleBinding"
+          },
+          {
+            "group": "apiextensions.k8s.io",
+            "kind": "CustomResourceDefinition"
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "kind": "MutatingWebhookConfiguration"
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "kind": "ValidatingWebhookConfiguration"
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "kind": "ValidatingAdmissionPolicy"
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "kind": "ValidatingAdmissionPolicyBinding"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-istio-base",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://istio-release.storage.googleapis.com/charts",
+          "chart": "base",
+          "targetRevision": "1.30.8",
+          "helm": {
+            "releaseName": "istio-base",
+            "skipTests": true,
+            "valuesObject": {}
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "istio-system"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-istiod",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://istio-release.storage.googleapis.com/charts",
+          "chart": "istiod",
+          "targetRevision": "1.30.8",
+          "helm": {
+            "releaseName": "istiod",
+            "skipTests": true,
+            "valuesObject": {
+              "pilot": {
+                "replicaCount": 1
+              }
+            }
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "istio-system"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-istio-ingress",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://istio-release.storage.googleapis.com/charts",
+          "chart": "gateway",
+          "targetRevision": "1.30.8",
+          "helm": {
+            "releaseName": "istio-ingress",
+            "skipTests": true,
+            "valuesObject": {
+              "replicaCount": 1,
+              "service": {
+                "type": "ClusterIP"
+              },
+              "labels": {
+                "istio": "dr-ingress"
+              }
+            }
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "istio-system"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-argocd",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://argoproj.github.io/argo-helm",
+          "chart": "argo-cd",
+          "targetRevision": "10.17.0",
+          "helm": {
+            "releaseName": "argocd",
+            "skipTests": true,
+            "valuesObject": {
+              "configs": {
+                "params": {
+                  "server.insecure": "false"
+                }
+              },
+              "server": {
+                "service": {
+                  "type": "ClusterIP"
+                }
+              },
+              "redis-ha": {
+                "enabled": false
+              }
+            }
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "argocd"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-monitoring",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://prometheus-community.github.io/helm-charts",
+          "chart": "kube-prometheus-stack",
+          "targetRevision": "93.1.0",
+          "helm": {
+            "releaseName": "monitoring",
+            "skipTests": true,
+            "valuesObject": {
+              "grafana": {
+                "admin": {
+                  "existingSecret": "dr-grafana-admin",
+                  "userKey": "admin-user",
+                  "passwordKey": "admin-password"
+                },
+                "persistence": {
+                  "enabled": true,
+                  "storageClassName": "gp3-retain",
+                  "size": "5Gi",
+                  "existingClaim": "dr-grafana-restored"
+                },
+                "sidecar": {
+                  "dashboards": {
+                    "enabled": true,
+                    "label": "grafana_dashboard",
+                    "searchNamespace": "observability"
+                  },
+                  "image": {
+                    "tag": "2.14.1"
+                  },
+                  "datasources": {
+                    "name": "prometheus-aws-eks-istio-lab-dev"
+                  }
+                },
+                "additionalDataSources": [
+                  {
+                    "name": "Loki",
+                    "uid": "loki",
+                    "type": "loki",
+                    "url": "http://loki.observability.svc.cluster.local:3100",
+                    "access": "proxy"
+                  },
+                  {
+                    "name": "Tempo",
+                    "uid": "P214B5B846CF3925F",
+                    "type": "tempo",
+                    "url": "http://tempo.observability.svc.cluster.local:3200",
+                    "access": "proxy"
+                  }
+                ],
+                "defaultDashboardsEnabled": false,
+                "nodeSelector": {
+                  "cosmotech.io/workload": "stateful"
+                }
+              },
+              "prometheus": {
+                "prometheusSpec": {
+                  "retention": "24h",
+                  "resources": {
+                    "requests": {
+                      "memory": "256Mi",
+                      "cpu": "100m"
+                    }
+                  },
+                  "storageSpec": {
+                    "volumeClaimTemplate": {
+                      "spec": {
+                        "storageClassName": "gp3-retain",
+                        "accessModes": [
+                          "ReadWriteOnce"
+                        ],
+                        "resources": {
+                          "requests": {
+                            "storage": "10Gi"
+                          }
+                        }
+                      }
+                    },
+                    "disableMountSubPath": true
+                  },
+                  "image": {
+                    "tag": "v3.15.1-distroless"
+                  },
+                  "nodeSelector": {
+                    "cosmotech.io/workload": "stateful"
+                  }
+                }
+              },
+              "alertmanager": {
+                "alertmanagerSpec": {
+                  "replicas": 1,
+                  "storage": {
+                    "disableMountSubPath": true,
+                    "volumeClaimTemplate": {
+                      "spec": {
+                        "storageClassName": "gp3-retain",
+                        "accessModes": [
+                          "ReadWriteOnce"
+                        ],
+                        "resources": {
+                          "requests": {
+                            "storage": "2Gi"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "nodeSelector": {
+                    "cosmotech.io/workload": "stateful"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "observability"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-otel",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://open-telemetry.github.io/opentelemetry-helm-charts",
+          "chart": "opentelemetry-collector",
+          "targetRevision": "0.178.2",
+          "helm": {
+            "releaseName": "otel",
+            "skipTests": true,
+            "valuesObject": {
+              "mode": "deployment",
+              "image": {
+                "repository": "otel/opentelemetry-collector-k8s"
+              },
+              "config": {
+                "exporters": {
+                  "debug": {},
+                  "otlp/tempo": {
+                    "endpoint": "tempo.observability.svc.cluster.local:4317",
+                    "tls": {
+                      "insecure": true
+                    }
+                  },
+                  "otlphttp/loki": {
+                    "endpoint": "http://loki.observability.svc.cluster.local:3100/otlp"
+                  }
+                },
+                "service": {
+                  "pipelines": {
+                    "traces": {
+                      "exporters": [
+                        "otlp/tempo"
+                      ]
+                    },
+                    "metrics": {
+                      "exporters": [
+                        "debug"
+                      ]
+                    },
+                    "logs": {
+                      "exporters": [
+                        "otlphttp/loki"
+                      ]
+                    }
+                  }
+                }
+              },
+              "fullnameOverride": "otel-collector-opentelemetry-collector"
+            }
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "observability"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-loki",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://grafana.github.io/helm-charts",
+          "chart": "loki",
+          "targetRevision": "7.5.0",
+          "helm": {
+            "releaseName": "loki",
+            "skipTests": true,
+            "valuesObject": {
+              "fullnameOverride": "loki",
+              "deploymentMode": "SingleBinary",
+              "loki": {
+                "auth_enabled": false,
+                "commonConfig": {
+                  "replication_factor": 1
+                },
+                "storage": {
+                  "type": "filesystem"
+                },
+                "schemaConfig": {
+                  "configs": [
+                    {
+                      "from": "2024-04-01",
+                      "store": "tsdb",
+                      "object_store": "filesystem",
+                      "schema": "v13",
+                      "index": {
+                        "prefix": "index_",
+                        "period": "24h"
+                      }
+                    }
+                  ]
+                },
+                "limits_config": {
+                  "retention_period": "24h"
+                },
+                "compactor": {
+                  "retention_enabled": true,
+                  "delete_request_store": "filesystem"
+                },
+                "image": {
+                  "tag": "3.7.9"
+                }
+              },
+              "singleBinary": {
+                "replicas": 1,
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "256Mi"
+                  }
+                },
+                "persistence": {
+                  "enabled": true,
+                  "size": "10Gi",
+                  "storageClass": "gp3-retain",
+                  "whenScaled": "Retain",
+                  "whenDeleted": "Retain",
+                  "enableStatefulSetAutoDeletePVC": false
+                },
+                "nodeSelector": {
+                  "cosmotech.io/workload": "stateful"
+                }
+              },
+              "read": {
+                "replicas": 0
+              },
+              "write": {
+                "replicas": 0
+              },
+              "backend": {
+                "replicas": 0
+              },
+              "minio": {
+                "enabled": false
+              },
+              "chunksCache": {
+                "enabled": false
+              },
+              "resultsCache": {
+                "enabled": false
+              },
+              "gateway": {
+                "enabled": false
+              },
+              "lokiCanary": {
+                "enabled": false
+              },
+              "test": {
+                "enabled": false
+              },
+              "sidecar": {
+                "image": {
+                  "tag": "2.14.1"
+                }
+              }
+            }
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "observability"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-tempo",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://grafana-community.github.io/helm-charts",
+          "chart": "tempo",
+          "targetRevision": "3.2.1",
+          "helm": {
+            "releaseName": "tempo",
+            "skipTests": true,
+            "valuesObject": {
+              "fullnameOverride": "tempo",
+              "persistence": {
+                "enabled": true,
+                "storageClassName": "gp3-retain",
+                "size": "10Gi"
+              },
+              "tempo": {
+                "retention": "24h",
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "256Mi"
+                  }
+                }
+              },
+              "nodeSelector": {
+                "cosmotech.io/workload": "stateful"
+              }
+            }
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "observability"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true",
+            "RespectIgnoreDifferences=true"
+          ]
+        },
+        "ignoreDifferences": [
+          {
+            "group": "",
+            "kind": "Secret",
+            "jsonPointers": [
+              "/data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-storage",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://github.com/rlcosmo/cosmotech-gitops.git",
+          "targetRevision": "REQUIRES_REVIEWED_DR_COMMIT",
+          "path": "disaster-recovery/storage",
+          "directory": {
+            "recurse": false
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "observability"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true"
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Application",
+      "metadata": {
+        "name": "cosmotech-dr-dashboards",
+        "namespace": "argocd"
+      },
+      "spec": {
+        "project": "cosmotech-dr-platform",
+        "source": {
+          "repoURL": "https://github.com/rlcosmo/cosmotech-gitops.git",
+          "targetRevision": "REQUIRES_REVIEWED_DR_COMMIT",
+          "path": "disaster-recovery/dashboards",
+          "directory": {
+            "recurse": false
+          }
+        },
+        "destination": {
+          "server": "https://kubernetes.default.svc",
+          "namespace": "observability"
+        },
+        "syncPolicy": {
+          "automated": {
+            "enabled": false,
+            "prune": false,
+            "selfHeal": false
+          },
+          "syncOptions": [
+            "ServerSideApply=true"
+          ]
+        }
+      }
+    }
+  ]
+}

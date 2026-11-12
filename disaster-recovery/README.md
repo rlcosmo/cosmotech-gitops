@@ -57,3 +57,24 @@ authorized DR operator. Expiry drains publishers/workers and stops API acceptanc
 this is an operational lease, NOT a cross-region fence. Stock/order checkpoints
 remain transactional in the restored table; external payment/shipping providers
 would require their own idempotency keys. No SQS exactly-once guarantee is made.
+
+## Ohio platform recovery, 2026-11-12
+
+`platform-bootstrap.json` pins the eight Helm releases from `platform-lock.json`.
+`render_platform_bootstrap.py --revision <reviewed-full-SHA>` creates local-cluster-only
+projects/apps for the platform, five restored PV/PVC pairs, dashboards and paused
+Orders/outbox runtime. Sync remains manual, pruning disabled. The platform project
+has a separate cluster-resource allowlist; Orders receives no cluster RBAC privilege.
+
+The five restored EBS volumes remain in us-east-2b with Retain and exact CSI volume
+IDs. The zonal node pool is managed by Terraform. Never edit affinity to claim an
+EBS volume resides elsewhere. Grafana uses the restored database, original four
+source UIDs and a separately generated regional admin Secret; do not commit secrets.
+Argo ignores runtime Secret data so adoption preserves existing credentials.
+
+Observed recovery: Grafana database healthy, 37 dashboards / two folders, anonymous
+search denied; Prometheus/Loki/Tempo data sources healthy. A real OTLP trace and log
+were accepted and subsequently queried from Tempo and Loki. This is telemetry
+validation, not a regional failover or an RTO/RPO measurement. GLPI/Kestra/Zabbix,
+source journal replication, writer fencing, regional routing and real failover/
+failback still require validation before declaring the complete platform recovered.

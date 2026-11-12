@@ -1,0 +1,1235 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+        "name": "orders-api",
+        "labels": {
+          "istio-injection": "enabled",
+          "cosmotech.io/environment": "dr"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "orders-api-sa",
+        "namespace": "orders-api"
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "orders-api"
+        },
+        "name": "orders-api",
+        "namespace": "orders-api",
+        "annotations": {
+          "cosmotech.io/dr-contract": "durable-outbox-v1"
+        }
+      },
+      "spec": {
+        "progressDeadlineSeconds": 600,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "app": "orders-api"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "instrumentation.opentelemetry.io/lab": "enabled",
+              "sidecar.istio.io/proxyCPU": "50m",
+              "sidecar.istio.io/proxyCPULimit": "250m",
+              "sidecar.istio.io/proxyMemory": "64Mi",
+              "sidecar.istio.io/proxyMemoryLimit": "256Mi"
+            },
+            "labels": {
+              "app": "orders-api",
+              "app.kubernetes.io/version": "2.0.5-lab",
+              "cosmotech.io/release": "api-2.0.5-lab-21",
+              "cosmotech.io/gmud-id": "RCL000011"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "AWS_REGION",
+                    "value": "us-east-2"
+                  },
+                  {
+                    "name": "DR_OUTBOX_TABLE",
+                    "value": "cosmotech-dr-outbox"
+                  },
+                  {
+                    "name": "DR_QUEUE_URL",
+                    "value": "https://sqs.us-east-2.amazonaws.com/414053644145/cosmotech-dr-passive-orders"
+                  },
+                  {
+                    "name": "DR_ACTIVATION_FILE",
+                    "value": "/dr-control/activation.json"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "orders-config"
+                    }
+                  }
+                ],
+                "image": "414053644145.dkr.ecr.us-east-2.amazonaws.com/cosmotech-dr-orders-outbox@sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60",
+                "imagePullPolicy": "IfNotPresent",
+                "livenessProbe": {
+                  "failureThreshold": 3,
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 2
+                },
+                "name": "orders-api",
+                "ports": [
+                  {
+                    "containerPort": 8000,
+                    "name": "http",
+                    "protocol": "TCP"
+                  }
+                ],
+                "readinessProbe": {
+                  "failureThreshold": 3,
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 5,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 2
+                },
+                "resources": {
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "name": "dr-control",
+                    "mountPath": "/dr-control",
+                    "readOnly": true
+                  }
+                ],
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 2,
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 2,
+                  "failureThreshold": 30,
+                  "successThreshold": 1
+                },
+                "command": [
+                  "python",
+                  "-m",
+                  "src.disaster_recovery.runtime",
+                  "api"
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "orders-api-sa",
+            "serviceAccountName": "orders-api-sa",
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "name": "dr-control",
+                "configMap": {
+                  "name": "dr-writer-activation"
+                }
+              }
+            ]
+          }
+        },
+        "minReadySeconds": 10,
+        "replicas": 0
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "AWS_DEFAULT_REGION": "us-east-2",
+        "DYNAMODB_TABLE": "cosmotech-dr-orders-restored",
+        "SQS_QUEUE_URL": "https://sqs.us-east-2.amazonaws.com/414053644145/cosmotech-dr-passive-orders",
+        "SYNTHETIC_INTERVAL_SECONDS": "300",
+        "SYNTHETIC_PEER_URL": "http://orders-worker.orders-worker.svc.cluster.local:8000/diagnostics/ping",
+        "SYNTHETIC_EXTERNAL_URL": "https://example.com/",
+        "AWS_REGION": "us-east-2"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "orders-config",
+        "namespace": "orders-api",
+        "annotations": {
+          "cosmotech.io/dr-mode": "passive"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "orders-api",
+        "namespace": "orders-api",
+        "labels": {
+          "app": "orders-api"
+        },
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000011"
+        }
+      },
+      "spec": {
+        "type": "ClusterIP",
+        "selector": {
+          "app": "orders-api"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 8000,
+            "targetPort": "http",
+            "protocol": "TCP"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "dr-restrict-ingress",
+        "namespace": "orders-api"
+      },
+      "spec": {
+        "podSelector": {},
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "istio-system"
+                  }
+                }
+              },
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "dr-test"
+                  }
+                }
+              },
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "orders-api"
+                  }
+                }
+              },
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "orders-worker"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+        "name": "orders-worker",
+        "labels": {
+          "istio-injection": "enabled",
+          "cosmotech.io/environment": "dr"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "orders-worker-sa",
+        "namespace": "orders-worker"
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "orders-worker"
+        },
+        "name": "orders-worker",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/dr-contract": "durable-outbox-v1"
+        }
+      },
+      "spec": {
+        "minReadySeconds": 10,
+        "progressDeadlineSeconds": 600,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "app": "orders-worker"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "instrumentation.opentelemetry.io/lab": "enabled",
+              "sidecar.istio.io/proxyCPU": "50m",
+              "sidecar.istio.io/proxyCPULimit": "250m",
+              "sidecar.istio.io/proxyMemory": "64Mi",
+              "sidecar.istio.io/proxyMemoryLimit": "256Mi"
+            },
+            "labels": {
+              "app": "orders-worker",
+              "cosmotech.io/component": "orders-worker",
+              "cosmotech.io/channel": "stable",
+              "app.kubernetes.io/version": "1.0.5",
+              "cosmotech.io/release": "worker-1.0.5-16",
+              "cosmotech.io/gmud-id": "RCL000008"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "AWS_REGION",
+                    "value": "us-east-2"
+                  },
+                  {
+                    "name": "DR_OUTBOX_TABLE",
+                    "value": "cosmotech-dr-outbox"
+                  },
+                  {
+                    "name": "DR_QUEUE_URL",
+                    "value": "https://sqs.us-east-2.amazonaws.com/414053644145/cosmotech-dr-passive-orders"
+                  },
+                  {
+                    "name": "DR_ACTIVATION_FILE",
+                    "value": "/dr-control/activation.json"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "orders-config"
+                    }
+                  }
+                ],
+                "image": "414053644145.dkr.ecr.us-east-2.amazonaws.com/cosmotech-dr-orders-outbox@sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "orders-worker",
+                "resources": {
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "name": "dr-control",
+                    "mountPath": "/dr-control",
+                    "readOnly": true
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 8000,
+                    "name": "http",
+                    "protocol": "TCP"
+                  }
+                ],
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "http"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 10,
+                  "failureThreshold": 3,
+                  "timeoutSeconds": 2
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http"
+                  },
+                  "initialDelaySeconds": 0,
+                  "periodSeconds": 5,
+                  "failureThreshold": 3,
+                  "timeoutSeconds": 2
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health/ready",
+                    "port": "http",
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 25,
+                  "periodSeconds": 5,
+                  "timeoutSeconds": 2,
+                  "failureThreshold": 30,
+                  "successThreshold": 1
+                },
+                "command": [
+                  "python",
+                  "-m",
+                  "src.disaster_recovery.runtime",
+                  "worker"
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "orders-worker-sa",
+            "serviceAccountName": "orders-worker-sa",
+            "terminationGracePeriodSeconds": 240,
+            "volumes": [
+              {
+                "name": "dr-control",
+                "configMap": {
+                  "name": "dr-writer-activation"
+                }
+              }
+            ]
+          }
+        },
+        "replicas": 0
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "AWS_DEFAULT_REGION": "us-east-2",
+        "DYNAMODB_TABLE": "cosmotech-dr-orders-restored",
+        "SQS_QUEUE_URL": "https://sqs.us-east-2.amazonaws.com/414053644145/cosmotech-dr-passive-orders",
+        "SYNTHETIC_INTERVAL_SECONDS": "300",
+        "SYNTHETIC_PEER_URL": "http://orders-api.orders-api.svc.cluster.local:8000/diagnostics/ping",
+        "SYNTHETIC_EXTERNAL_URL": "https://example.com/",
+        "AWS_REGION": "us-east-2"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "orders-config",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/dr-mode": "passive"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "orders-worker",
+        "namespace": "orders-worker",
+        "labels": {
+          "app": "orders-worker"
+        },
+        "annotations": {
+          "cosmotech.io/gmud-id": "RCL000010"
+        }
+      },
+      "spec": {
+        "type": "ClusterIP",
+        "selector": {
+          "app": "orders-worker"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 8000,
+            "targetPort": "http",
+            "protocol": "TCP"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "orders-worker-stable-control",
+        "namespace": "orders-worker",
+        "annotations": {
+          "cosmotech.io/dr-mode": "passive"
+        }
+      },
+      "data": {
+        "mode": "pause"
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "dr-restrict-ingress",
+        "namespace": "orders-worker"
+      },
+      "spec": {
+        "podSelector": {},
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "istio-system"
+                  }
+                }
+              },
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "dr-test"
+                  }
+                }
+              },
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "orders-api"
+                  }
+                }
+              },
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "orders-worker"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.istio.io/v1",
+      "kind": "Gateway",
+      "metadata": {
+        "name": "dr-internal",
+        "namespace": "orders-api"
+      },
+      "spec": {
+        "selector": {
+          "istio": "dr-ingress"
+        },
+        "servers": [
+          {
+            "port": {
+              "number": 80,
+              "name": "http",
+              "protocol": "HTTP"
+            },
+            "hosts": [
+              "orders.dr-test.internal"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.istio.io/v1",
+      "kind": "VirtualService",
+      "metadata": {
+        "name": "dr-orders",
+        "namespace": "orders-api"
+      },
+      "spec": {
+        "hosts": [
+          "orders.dr-test.internal"
+        ],
+        "gateways": [
+          "dr-internal"
+        ],
+        "http": [
+          {
+            "route": [
+              {
+                "destination": {
+                  "host": "orders-api.orders-api.svc.cluster.local",
+                  "port": {
+                    "number": 8000
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "security.istio.io/v1",
+      "kind": "PeerAuthentication",
+      "metadata": {
+        "name": "dr-strict",
+        "namespace": "orders-api"
+      },
+      "spec": {
+        "mtls": {
+          "mode": "STRICT"
+        }
+      }
+    },
+    {
+      "apiVersion": "security.istio.io/v1",
+      "kind": "PeerAuthentication",
+      "metadata": {
+        "name": "dr-strict",
+        "namespace": "orders-worker"
+      },
+      "spec": {
+        "mtls": {
+          "mode": "STRICT"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "dr-writer-activation",
+        "namespace": "orders-api"
+      },
+      "data": {
+        "activation.json": "{\"mode\": \"pause\", \"region\": \"us-east-2\", \"epoch\": 0, \"expires_at\": 0}"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "dr-writer-activation",
+        "namespace": "orders-worker"
+      },
+      "data": {
+        "activation.json": "{\"mode\": \"pause\", \"region\": \"us-east-2\", \"epoch\": 0, \"expires_at\": 0}"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "dr-outbox-publisher",
+        "namespace": "orders-api"
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "dr-outbox-publisher"
+        },
+        "name": "dr-outbox-publisher",
+        "namespace": "orders-api",
+        "annotations": {
+          "cosmotech.io/dr-contract": "durable-outbox-v1"
+        }
+      },
+      "spec": {
+        "progressDeadlineSeconds": 600,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "app": "dr-outbox-publisher"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "instrumentation.opentelemetry.io/lab": "enabled",
+              "sidecar.istio.io/proxyCPU": "50m",
+              "sidecar.istio.io/proxyCPULimit": "250m",
+              "sidecar.istio.io/proxyMemory": "64Mi",
+              "sidecar.istio.io/proxyMemoryLimit": "256Mi"
+            },
+            "labels": {
+              "app": "dr-outbox-publisher"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "AWS_REGION",
+                    "value": "us-east-2"
+                  },
+                  {
+                    "name": "DR_OUTBOX_TABLE",
+                    "value": "cosmotech-dr-outbox"
+                  },
+                  {
+                    "name": "DR_QUEUE_URL",
+                    "value": "https://sqs.us-east-2.amazonaws.com/414053644145/cosmotech-dr-passive-orders"
+                  },
+                  {
+                    "name": "DR_ACTIVATION_FILE",
+                    "value": "/dr-control/activation.json"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "orders-config"
+                    }
+                  }
+                ],
+                "image": "414053644145.dkr.ecr.us-east-2.amazonaws.com/cosmotech-dr-orders-outbox@sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "dr-outbox-publisher",
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "300m",
+                    "memory": "256Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "name": "dr-control",
+                    "mountPath": "/dr-control",
+                    "readOnly": true
+                  }
+                ],
+                "command": [
+                  "python",
+                  "-m",
+                  "src.disaster_recovery.runtime",
+                  "publisher"
+                ]
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "dr-outbox-publisher",
+            "serviceAccountName": "dr-outbox-publisher",
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "name": "dr-control",
+                "configMap": {
+                  "name": "dr-writer-activation"
+                }
+              }
+            ]
+          }
+        },
+        "minReadySeconds": 10,
+        "replicas": 0
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "dr-outbox-metrics",
+        "namespace": "orders-api"
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "dr-outbox-metrics"
+        },
+        "name": "dr-outbox-metrics",
+        "namespace": "orders-api",
+        "annotations": {
+          "cosmotech.io/dr-contract": "durable-outbox-v1"
+        }
+      },
+      "spec": {
+        "progressDeadlineSeconds": 600,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "app": "dr-outbox-metrics"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "annotations": {
+              "sidecar.istio.io/inject": "false"
+            },
+            "labels": {
+              "app": "dr-outbox-metrics"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "AWS_REGION",
+                    "value": "us-east-2"
+                  },
+                  {
+                    "name": "DR_OUTBOX_TABLE",
+                    "value": "cosmotech-dr-outbox"
+                  },
+                  {
+                    "name": "DR_QUEUE_URL",
+                    "value": "https://sqs.us-east-2.amazonaws.com/414053644145/cosmotech-dr-passive-orders"
+                  },
+                  {
+                    "name": "DR_ACTIVATION_FILE",
+                    "value": "/dr-control/activation.json"
+                  },
+                  {
+                    "name": "RELEASE_VERSION",
+                    "value": "sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "orders-config"
+                    }
+                  }
+                ],
+                "image": "414053644145.dkr.ecr.us-east-2.amazonaws.com/cosmotech-dr-orders-outbox@sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "dr-outbox-metrics",
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "300m",
+                    "memory": "256Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                  {
+                    "name": "dr-control",
+                    "mountPath": "/dr-control",
+                    "readOnly": true
+                  }
+                ],
+                "command": [
+                  "python",
+                  "-m",
+                  "src.disaster_recovery.runtime",
+                  "metrics"
+                ],
+                "ports": [
+                  {
+                    "containerPort": 9090,
+                    "name": "metrics"
+                  }
+                ],
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health/live",
+                    "port": "metrics"
+                  },
+                  "periodSeconds": 10
+                }
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "dr-outbox-metrics",
+            "serviceAccountName": "dr-outbox-metrics",
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "name": "dr-control",
+                "configMap": {
+                  "name": "dr-writer-activation"
+                }
+              }
+            ]
+          }
+        },
+        "minReadySeconds": 10,
+        "replicas": 0
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "dr-outbox-metrics",
+        "namespace": "orders-api",
+        "labels": {
+          "app": "dr-outbox-metrics"
+        }
+      },
+      "spec": {
+        "type": "ClusterIP",
+        "selector": {
+          "app": "dr-outbox-metrics"
+        },
+        "ports": [
+          {
+            "name": "metrics",
+            "port": 9090,
+            "targetPort": "metrics"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "monitoring.coreos.com/v1",
+      "kind": "ServiceMonitor",
+      "metadata": {
+        "name": "dr-outbox-metrics",
+        "namespace": "orders-api",
+        "labels": {
+          "release": "monitoring"
+        }
+      },
+      "spec": {
+        "selector": {
+          "matchLabels": {
+            "app": "dr-outbox-metrics"
+          }
+        },
+        "endpoints": [
+          {
+            "port": "metrics",
+            "path": "/metrics",
+            "interval": "60s"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "NetworkPolicy",
+      "metadata": {
+        "name": "dr-observability-scrape",
+        "namespace": "orders-api"
+      },
+      "spec": {
+        "podSelector": {
+          "matchLabels": {
+            "app": "dr-outbox-metrics"
+          }
+        },
+        "policyTypes": [
+          "Ingress"
+        ],
+        "ingress": [
+          {
+            "from": [
+              {
+                "namespaceSelector": {
+                  "matchLabels": {
+                    "kubernetes.io/metadata.name": "observability"
+                  }
+                }
+              }
+            ],
+            "ports": [
+              {
+                "protocol": "TCP",
+                "port": 9090
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "dr-outbox-reconciler",
+        "namespace": "orders-api"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "dr-recovery-evidence",
+        "namespace": "orders-api"
+      },
+      "spec": {
+        "storageClassName": "gp3-retain",
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "5Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "dr-journal-replay-preparation",
+        "namespace": "orders-api"
+      },
+      "spec": {
+        "suspend": true,
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "dr-journal-reconciler"
+            },
+            "annotations": {
+              "sidecar.istio.io/inject": "false"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "serviceAccountName": "dr-outbox-reconciler",
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "containers": [
+              {
+                "name": "plan-only",
+                "image": "414053644145.dkr.ecr.us-east-2.amazonaws.com/cosmotech-dr-orders-outbox@sha256:aa3ebe7e2bfa3dc81969a35acb84faad221ac259d3295f57e4c493a9d5df6d60",
+                "command": [
+                  "python",
+                  "scripts/dr/apply_replay.py",
+                  "--source",
+                  "/recovery/source.json",
+                  "--report",
+                  "/recovery/report.json",
+                  "--epoch",
+                  "0"
+                ],
+                "env": [
+                  {
+                    "name": "AWS_REGION",
+                    "value": "us-east-2"
+                  },
+                  {
+                    "name": "DR_OUTBOX_TABLE",
+                    "value": "cosmotech-dr-outbox"
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "300m",
+                    "memory": "256Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "recovery",
+                    "mountPath": "/recovery"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "recovery",
+                "persistentVolumeClaim": {
+                  "claimName": "dr-recovery-evidence"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

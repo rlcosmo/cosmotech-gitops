@@ -1,0 +1,372 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolume",
+      "metadata": {
+        "name": "cosmotech-dr-grafana-restored",
+        "labels": {
+          "cosmotech.io/environment": "dr",
+          "cosmotech.io/component": "grafana"
+        }
+      },
+      "spec": {
+        "capacity": {
+          "storage": "5Gi"
+        },
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "persistentVolumeReclaimPolicy": "Retain",
+        "storageClassName": "gp3-retain",
+        "claimRef": {
+          "namespace": "observability",
+          "name": "dr-grafana-restored"
+        },
+        "csi": {
+          "driver": "ebs.csi.aws.com",
+          "volumeHandle": "vol-01f1a4cdc5e20f50f",
+          "fsType": "ext4"
+        },
+        "nodeAffinity": {
+          "required": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "topology.kubernetes.io/zone",
+                    "operator": "In",
+                    "values": [
+                      "us-east-2b"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "dr-grafana-restored",
+        "namespace": "observability",
+        "labels": {
+          "cosmotech.io/environment": "dr"
+        }
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "storageClassName": "gp3-retain",
+        "volumeName": "cosmotech-dr-grafana-restored",
+        "resources": {
+          "requests": {
+            "storage": "5Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolume",
+      "metadata": {
+        "name": "cosmotech-dr-prometheus-restored",
+        "labels": {
+          "cosmotech.io/environment": "dr",
+          "cosmotech.io/component": "prometheus"
+        }
+      },
+      "spec": {
+        "capacity": {
+          "storage": "10Gi"
+        },
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "persistentVolumeReclaimPolicy": "Retain",
+        "storageClassName": "gp3-retain",
+        "claimRef": {
+          "namespace": "observability",
+          "name": "prometheus-monitoring-kube-prometheus-prometheus-db-prometheus-monitoring-kube-prometheus-prometheus-0"
+        },
+        "csi": {
+          "driver": "ebs.csi.aws.com",
+          "volumeHandle": "vol-0b7f11fedab035cea",
+          "fsType": "ext4"
+        },
+        "nodeAffinity": {
+          "required": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "topology.kubernetes.io/zone",
+                    "operator": "In",
+                    "values": [
+                      "us-east-2b"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "prometheus-monitoring-kube-prometheus-prometheus-db-prometheus-monitoring-kube-prometheus-prometheus-0",
+        "namespace": "observability",
+        "labels": {
+          "cosmotech.io/environment": "dr"
+        }
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "storageClassName": "gp3-retain",
+        "volumeName": "cosmotech-dr-prometheus-restored",
+        "resources": {
+          "requests": {
+            "storage": "10Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolume",
+      "metadata": {
+        "name": "cosmotech-dr-tempo-restored",
+        "labels": {
+          "cosmotech.io/environment": "dr",
+          "cosmotech.io/component": "tempo"
+        }
+      },
+      "spec": {
+        "capacity": {
+          "storage": "10Gi"
+        },
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "persistentVolumeReclaimPolicy": "Retain",
+        "storageClassName": "gp3-retain",
+        "claimRef": {
+          "namespace": "observability",
+          "name": "storage-tempo-0"
+        },
+        "csi": {
+          "driver": "ebs.csi.aws.com",
+          "volumeHandle": "vol-0d1bb9f87dac08455",
+          "fsType": "ext4"
+        },
+        "nodeAffinity": {
+          "required": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "topology.kubernetes.io/zone",
+                    "operator": "In",
+                    "values": [
+                      "us-east-2b"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "storage-tempo-0",
+        "namespace": "observability",
+        "labels": {
+          "cosmotech.io/environment": "dr"
+        }
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "storageClassName": "gp3-retain",
+        "volumeName": "cosmotech-dr-tempo-restored",
+        "resources": {
+          "requests": {
+            "storage": "10Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolume",
+      "metadata": {
+        "name": "cosmotech-dr-loki-restored",
+        "labels": {
+          "cosmotech.io/environment": "dr",
+          "cosmotech.io/component": "loki"
+        }
+      },
+      "spec": {
+        "capacity": {
+          "storage": "10Gi"
+        },
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "persistentVolumeReclaimPolicy": "Retain",
+        "storageClassName": "gp3-retain",
+        "claimRef": {
+          "namespace": "observability",
+          "name": "storage-loki-0"
+        },
+        "csi": {
+          "driver": "ebs.csi.aws.com",
+          "volumeHandle": "vol-08f66c138b5c427ec",
+          "fsType": "ext4"
+        },
+        "nodeAffinity": {
+          "required": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "topology.kubernetes.io/zone",
+                    "operator": "In",
+                    "values": [
+                      "us-east-2b"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "storage-loki-0",
+        "namespace": "observability",
+        "labels": {
+          "cosmotech.io/environment": "dr"
+        }
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "storageClassName": "gp3-retain",
+        "volumeName": "cosmotech-dr-loki-restored",
+        "resources": {
+          "requests": {
+            "storage": "10Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolume",
+      "metadata": {
+        "name": "cosmotech-dr-alertmanager-restored",
+        "labels": {
+          "cosmotech.io/environment": "dr",
+          "cosmotech.io/component": "alertmanager"
+        }
+      },
+      "spec": {
+        "capacity": {
+          "storage": "2Gi"
+        },
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "persistentVolumeReclaimPolicy": "Retain",
+        "storageClassName": "gp3-retain",
+        "claimRef": {
+          "namespace": "observability",
+          "name": "alertmanager-monitoring-kube-prometheus-alertmanager-db-alertmanager-monitoring-kube-prometheus-alertmanager-0"
+        },
+        "csi": {
+          "driver": "ebs.csi.aws.com",
+          "volumeHandle": "vol-0aa23b64d8abce5c4",
+          "fsType": "ext4"
+        },
+        "nodeAffinity": {
+          "required": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "topology.kubernetes.io/zone",
+                    "operator": "In",
+                    "values": [
+                      "us-east-2b"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "alertmanager-monitoring-kube-prometheus-alertmanager-db-alertmanager-monitoring-kube-prometheus-alertmanager-0",
+        "namespace": "observability",
+        "labels": {
+          "cosmotech.io/environment": "dr"
+        }
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "storageClassName": "gp3-retain",
+        "volumeName": "cosmotech-dr-alertmanager-restored",
+        "resources": {
+          "requests": {
+            "storage": "2Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "storage.k8s.io/v1",
+      "kind": "StorageClass",
+      "metadata": {
+        "name": "gp3-retain"
+      },
+      "provisioner": "ebs.csi.aws.com",
+      "parameters": {
+        "type": "gp3",
+        "encrypted": "true",
+        "kmsKeyId": "arn:aws:kms:us-east-2:414053644145:key/046b703a-8dea-4fdc-be67-beb14fe1a077"
+      },
+      "reclaimPolicy": "Retain",
+      "volumeBindingMode": "WaitForFirstConsumer",
+      "allowVolumeExpansion": true
+    }
+  ]
+}
