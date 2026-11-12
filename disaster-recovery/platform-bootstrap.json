@@ -139,9 +139,8 @@
             "releaseName": "istiod",
             "skipTests": true,
             "valuesObject": {
-              "pilot": {
-                "replicaCount": 1
-              }
+              "replicaCount": 1,
+              "autoscaleEnabled": false
             }
           }
         },
@@ -194,6 +193,9 @@
               },
               "labels": {
                 "istio": "dr-ingress"
+              },
+              "autoscaling": {
+                "enabled": false
               }
             }
           }
