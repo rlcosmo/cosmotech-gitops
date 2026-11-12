@@ -9,3 +9,11 @@ Check Application revision and Synced/Healthy, live PrometheusRule names and man
 The dashboard ConfigMap is a versioned source artifact, without the grafana_dashboard sidecar-import label. The existing scoped API publisher retains ownership of the live UID and Lab V2 folder. This prevents duplicate provisioning or moving existing Grafana data; authenticating and validating that dashboard still requires Grafana recovery. The provenance manifest records the original source hash, artifact hash and dashboard-data hash.
 
 The orders delivery workflow triggers only for application manifests or their release receipts. Infrastructure/observability/DR commits run validation and the isolated Argo reconciliation without starting an Orders rollout. Manual delivery remains guarded by the existing signed-publisher verification.
+
+
+During V2-003 recovery, the observability application is pinned to reviewed commit
+04e75cc15c443d88a3e776374ddeeebf4ec37dde. This preserves its GitHub merge-signature
+scope while the exclusive Orders publisher restores a trusted metadata checkpoint
+on main. Its eight alerts and dashboard bytes are unchanged. Future observability
+releases must update this immutable revision after their own CI/signature review;
+do not add the general GitHub key to the critical Orders project.
