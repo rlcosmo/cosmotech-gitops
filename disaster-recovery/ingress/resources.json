@@ -1,0 +1,123 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "dr-alb-gateway",
+        "namespace": "istio-system"
+      },
+      "spec": {
+        "type": "NodePort",
+        "externalTrafficPolicy": "Cluster",
+        "selector": {
+          "istio": "dr-ingress"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "port": 80,
+            "targetPort": 8080,
+            "nodePort": 31080,
+            "protocol": "TCP"
+          },
+          {
+            "name": "status-port",
+            "port": 15021,
+            "targetPort": 15021,
+            "nodePort": 31521,
+            "protocol": "TCP"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.istio.io/v1",
+      "kind": "Gateway",
+      "metadata": {
+        "name": "dr-https-upstream",
+        "namespace": "istio-system"
+      },
+      "spec": {
+        "selector": {
+          "istio": "dr-ingress"
+        },
+        "servers": [
+          {
+            "port": {
+              "number": 80,
+              "name": "http",
+              "protocol": "HTTP"
+            },
+            "hosts": [
+              "orders-api-dev.cosmotechsolutions.com.br",
+              "grafana.cosmotechsolutions.com.br"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.istio.io/v1",
+      "kind": "VirtualService",
+      "metadata": {
+        "name": "dr-orders-api",
+        "namespace": "istio-system"
+      },
+      "spec": {
+        "hosts": [
+          "orders-api-dev.cosmotechsolutions.com.br"
+        ],
+        "gateways": [
+          "dr-https-upstream"
+        ],
+        "http": [
+          {
+            "route": [
+              {
+                "destination": {
+                  "host": "orders-api.orders-api.svc.cluster.local",
+                  "port": {
+                    "number": 8000
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "networking.istio.io/v1",
+      "kind": "VirtualService",
+      "metadata": {
+        "name": "dr-grafana",
+        "namespace": "istio-system"
+      },
+      "spec": {
+        "hosts": [
+          "grafana.cosmotechsolutions.com.br"
+        ],
+        "gateways": [
+          "dr-https-upstream"
+        ],
+        "http": [
+          {
+            "route": [
+              {
+                "destination": {
+                  "host": "monitoring-grafana.observability.svc.cluster.local",
+                  "port": {
+                    "number": 80
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
