@@ -31,6 +31,10 @@
           {
             "server": "https://kubernetes.default.svc",
             "namespace": "istio-system"
+          },
+          {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "kube-system"
           }
         ],
         "clusterResourceWhitelist": [
@@ -118,6 +122,15 @@
             "jsonPointers": [
               "/data"
             ]
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "kind": "ValidatingWebhookConfiguration",
+            "name": "istiod-default-validator",
+            "jqPathExpressions": [
+              ".webhooks[]?.clientConfig.caBundle",
+              ".webhooks[]?.failurePolicy"
+            ]
           }
         ]
       }
@@ -165,6 +178,15 @@
             "kind": "Secret",
             "jsonPointers": [
               "/data"
+            ]
+          },
+          {
+            "group": "admissionregistration.k8s.io",
+            "kind": "ValidatingWebhookConfiguration",
+            "name": "istio-validator-istio-system",
+            "jqPathExpressions": [
+              ".webhooks[]?.clientConfig.caBundle",
+              ".webhooks[]?.failurePolicy"
             ]
           }
         ]
@@ -404,6 +426,15 @@
                     "cosmotech.io/workload": "stateful"
                   }
                 }
+              },
+              "kubeControllerManager": {
+                "enabled": false
+              },
+              "kubeScheduler": {
+                "enabled": false
+              },
+              "kubeEtcd": {
+                "enabled": false
               }
             }
           }
